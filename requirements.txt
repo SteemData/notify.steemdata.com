@@ -1,13 +1,18 @@
 appdirs==1.4.3
 certifi==2017.4.17
 chardet==3.0.4
+click==6.7
 dateparser==0.6.0
 diff-match-patch==20121119
 ecdsa==0.13
+Flask==0.12.2
 funcy==1.7.5
 humanize==0.5.1
 idna==2.5
+itsdangerous==0.24
+Jinja2==2.9.6
 langdetect==1.0.7
+MarkupSafe==1.0
 maya==0.3.2
 pendulum==1.2.2
 prettytable==0.7.2
@@ -28,3 +33,5 @@ ujson==1.35
 urllib3==1.21.1
 voluptuous==0.10.5
 w3lib==1.17.0
+Werkzeug==0.12.2
+WTForms==2.1
