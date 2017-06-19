@@ -2,6 +2,7 @@ from flask import (
     Blueprint, Response, g,
     request, render_template, flash, redirect
 )
+from .managers import UserManager
 from .forms import RegisterForm, LoginForm
 
 blueprint = Blueprint('users', __name__)

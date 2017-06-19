@@ -5,9 +5,11 @@ from wtforms import (
 
 class RegisterForm(Form):
     username = StringField('Username', [
+        validators.InputRequired(),
         validators.Length(min=3, max=25),
     ])
     email = StringField('Email', [
+        validators.InputRequired(),
         validators.Email(),
     ])
     password = PasswordField('New password', [
