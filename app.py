@@ -1,16 +1,21 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+import os
+
 from flask import Flask, g
 from blueprints.database import mongo
 from blueprints.landingpage.views import blueprint as landingpage_blueprint
 from blueprints.users.views import blueprint as users_blueprint
 
 
-def create_app():
+def create_app(testing=False):
     app = Flask(__name__)
     app.secret_key = '0123456789abcdef'
-    app.config['MONGO_URI'] = 'mongodb://localhost:27017/steem_notifier'
+    mongo_uri = os.getenv('MONGO_URI', 'mongodb://localhost:27017/steem_notifier')
+    if testing:
+        mongo_uri = '%s_test' % mongo_uri
+    app.config['MONGO_URI'] = mongo_uri
 
     mongo.init_app(app)
 

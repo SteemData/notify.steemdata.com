@@ -1,6 +1,7 @@
 from wtforms import (
     Form, StringField, PasswordField, validators, ValidationError
 )
+from .managers import UserManager
 
 
 class RegisterForm(Form):
@@ -16,9 +17,13 @@ class RegisterForm(Form):
         validators.InputRequired(),
         validators.EqualTo('confirm_password', message='Both password must match.'),
     ])
-    confirm_password = PasswordField('Repeat password', [
+    confirm_password = PasswordField('Confirm password', [
         validators.InputRequired(),
     ])
+
+    def validate_username(self, field):
+        if UserManager.is_username_exists(field.data):
+            raise ValidationError('This username is already taken.')
 
 
 class LoginForm(Form):
