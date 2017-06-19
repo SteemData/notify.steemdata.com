@@ -1,5 +1,6 @@
 from flask import (
-    Blueprint, request, render_template, flash, redirect,
+    Blueprint, Response, g,
+    request, render_template, flash, redirect
 )
 from .forms import RegisterForm, LoginForm
 
