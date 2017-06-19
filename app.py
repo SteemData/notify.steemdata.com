@@ -8,6 +8,7 @@ from blueprints.users.views import blueprint as users_blueprint
 
 def create_app():
     app = Flask(__name__)
+    app.secret_key = '0123456789abcdef'
     app.register_blueprint(landingpage_blueprint, url_prefix='/')
     app.register_blueprint(users_blueprint, url_prefix='/users')
     return app
