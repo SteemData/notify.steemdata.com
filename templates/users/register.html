@@ -7,10 +7,9 @@
       <div class="panel-form-logo">
         <h2>Steem Notifier</h2>
       </div>
-
       <div class="panel panel-default panel-form">
         <div class="panel-heading">
-          <h3 class="panel-title text-center"><strong>Sign In</strong></h3>
+          <h3 class="panel-title text-center"><strong>Sign Up</strong></h3>
         </div>
         <div class="panel-body">
           {% with messages = get_flashed_messages(with_categories=True) %}
@@ -33,6 +32,13 @@
                 <p class="help-block">{{ form.errors.username.0 }}</p>
               {% endif %}
             </div>
+            <div class="form-group {% if form.errors.email %}has-error{% endif %}">
+              {{ form.email.label }}
+              {{ form.email(class='form-control') }}
+              {% if form.errors.email %}
+                <p class="help-block">{{ form.errors.email.0 }}</p>
+              {% endif %}
+            </div>
             <div class="form-group {% if form.errors.password %}has-error{% endif %}">
               {{ form.password.label }}
               {{ form.password(class='form-control') }}
@@ -40,14 +46,21 @@
                 <p class="help-block">{{ form.errors.password.0 }}</p>
               {% endif %}
             </div>
-            <button class="btn btn-block btn-success" type="submit">Sign In</button>
+            <div class="form-group {% if form.errors.confirm_password %}has-error{% endif %}">
+              {{ form.confirm_password.label }}
+              {{ form.confirm_password(class='form-control') }}
+              {% if form.errors.confirm_password %}
+                <p class="help-block">{{ form.errors.confirm_password.0 }}</p>
+              {% endif %}
+            </div>
+            <button class="btn btn-block btn-success" type="submit">Sign Up</button>
           </form>
           <div class="bottom-text">
-            <p>Don't have account yet? Please <a href="/users/register">sign up</a>.</p>
+            <p>Already have an account? Please <a href="/users/login">sign in</a>.</p>
           </div>
         </div> <!-- /.panel-body -->
       </div> <!-- /.panel -->
 
-    </div> <!-- /.col-md-6 -->
-  </div> <!-- /.row -->
+    </div>
+  </div>
 {% endblock %}
