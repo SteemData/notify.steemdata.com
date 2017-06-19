@@ -3,8 +3,21 @@
 <head>
   <meta charset="utf-8">
   <title>Steem Notifier App</title>
+  <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
 </head>
 <body>
-  <h1>Steem Notifier App</h1>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h1>Steem Notifier App</h1>
+      </div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/ie10-viewport-bug-workaround.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
 </body>
 </html>
