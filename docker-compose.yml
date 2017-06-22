@@ -6,9 +6,10 @@ volumes:
 services:
   web:
     build: .
+    ports:
+      - "5000:5000"
     depends_on:
       - mongodb
-      - redis
     environment:
       - MONGO_URI="mongodb://db:27017/steem_notifier"
     logging:
@@ -18,7 +19,9 @@ services:
         max-file: '2'
     command: python src/app.py
 
-  db:
+  mongodb:
     image: mongo:3.5
+    ports:
+      - "27017:27017"
     volumes:
       - mongo_data:/data/db
