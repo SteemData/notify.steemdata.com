@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1 class="ui center aligned header">Settings for {{ username }}</h1>
+
+  <form method="post" class="ui form" novalidate="">
+
+    <div class="ui one column stackable grid container">
+      <div class="four wide column"><!--dummy padding--></div>
+
+      <div class="ui eight wide column">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="ui success message visible">
+              <p>{{ messages.0 }}</p>
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        {% if form.errors %}
+          <div class="ui error message visible">
+            <div class="header">Saving settings failed</div>
+            <ul>
+              {% for key in form.errors %}
+                <li>{{ form.errors[key].0 }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+
+        <div class="field {% if form.errors.email %}error{% endif %}">
+          {{ form.email.label }}
+          {{ form.email(placeholder='Your email address') }}
+        </div>
+        <div class="field {% if form.errors.telegram_channel_id %}error{% endif %}">
+          {{ form.telegram_channel_id.label }}
+          {{ form.telegram_channel_id(placeholder='e.g: @mychannel') }}
+        </div>
+
+        <p><strong>Notify me for these events:</strong></p>
+
+        <div class="field">
+          <div class="ui checkbox">
+            {{ form.account_update }}
+            {{ form.account_update.label }}
+          </div>
+        </div>
+        <div class="field">
+          <div class="ui checkbox">
+            {{ form.change_recovery_account }}
+            {{ form.change_recovery_account.label }}
+          </div>
+        </div>
+        <div class="field">
+          <div class="ui checkbox">
+            {{ form.request_account_recovery }}
+            {{ form.request_account_recovery.label }}
+          </div>
+        </div>
+        <div class="field">
+          <div class="ui checkbox">
+            {{ form.transfer }}
+            {{ form.transfer.label }}
+          </div>
+        </div>
+        <div class="field">
+          <div class="ui checkbox">
+            {{ form.transfer_from_savings }}
+            {{ form.transfer_from_savings.label }}
+          </div>
+        </div>
+        <div class="field">
+          <div class="ui checkbox">
+            {{ form.set_withdraw_vesting_route }}
+            {{ form.set_withdraw_vesting_route.label }}
+          </div>
+        </div>
+        <div class="field">
+          <div class="ui checkbox">
+            {{ form.withdraw_vesting }}
+            {{ form.withdraw_vesting.label }}
+          </div>
+        </div>
+        <div class="field">
+          <div class="ui checkbox">
+            {{ form.fill_order }}
+            {{ form.fill_order.label }}
+          </div>
+        </div>
+        <div class="field">
+          <div class="ui checkbox">
+            {{ form.fill_convert_request }}
+            {{ form.fill_convert_request.label }}
+          </div>
+        </div>
+        <div class="field">
+          <div class="ui checkbox">
+            {{ form.fill_transfer_from_savings }}
+            {{ form.fill_transfer_from_savings.label }}
+          </div>
+        </div>
+        <div class="field">
+          <div class="ui checkbox">
+            {{ form.fill_vesting_withdraw }}
+            {{ form.fill_vesting_withdraw.label }}
+          </div>
+        </div>
+
+        <div class="ui divider"></div>
+        <div class="ui error message"></div>
+        <button class="ui primary fluid button">Save my settings</button>
+        
+      </div> <!--/.eight.wide.column-->
+    </div> <!--/.container-->
+
+  </form>
+{% endblock %}

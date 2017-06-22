@@ -1,18 +1,10 @@
-.landingpage-panel {
-  margin-top: 150px;
+body {
+  margin: 30px 0;
 }
-
-.panel-form-logo {
-  position: relative;
-  top: 50px;
+.landing-logo {
+  margin-top: 100px;
   text-align: center;
 }
-.panel-form {
-  margin-top: 70px;
-}
-.panel-form .bottom-text {
-  margin-top: 20px;
-}
-form .has-error .control-label {
-  color: #333;
+.landing-logo img {
+  margin: 0 auto;
 }
