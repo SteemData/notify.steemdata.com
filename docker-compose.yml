@@ -1,0 +1,24 @@
+version: '2'
+
+volumes:
+  mongo_data: {}
+
+services:
+  web:
+    build: .
+    depends_on:
+      - mongodb
+      - redis
+    environment:
+      - MONGO_URI="mongodb://db:27017/steem_notifier"
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '2'
+    command: python src/app.py
+
+  db:
+    image: mongo:3.5
+    volumes:
+      - mongo_data:/data/db
