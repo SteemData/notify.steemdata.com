@@ -11,7 +11,7 @@ services:
     depends_on:
       - mongodb
     environment:
-      - MONGO_URI="mongodb://mongodb:27017/steem_notifier"
+      - MONGO_URI=mongodb://mongodb:27017/steem_notifier
     logging:
       driver: 'json-file'
       options:
