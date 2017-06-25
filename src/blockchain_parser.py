@@ -33,22 +33,82 @@ def run():
         'fill_transfer_from_savings',
         'fill_vesting_withdraw',
     ]
-    for operation in b.stream():
-        if operation['type'] == 'transfer':
-            handle_transfer(operation)
+    for op in b.stream():
+        if op['type'] in types:
+            parse_blockchain(op)
 
 
-def handle_transfer(op):
-    settings = db.settings.find_one({'username': op['from']})
-    if settings and settings['transfer']:
-        message = 'Received event: transfer\nEvent detail: %s -> %s (%s)' % (
-            op['from'], op['to'], op['amount'],
-        )
+def parse_blockchain(op):
+    settings = None
+    message = None
+
+    if op['type'] == 'account_update':
+        settings = db.settings.find_one({'username': op['account']})
+        if settings and settings['account_update']:
+            message = 'Received event: account_update (%s)' % op['account']
+
+    elif op['type'] in ['transfer', 'transfer_from_savings']:
+        settings = db.settings.find_one({'username': op['from']})
+        if settings and settings[op['type']]:
+            message = 'Received event: %s\nEvent detail: %s -> %s (%s)' % (
+                op['type'], op['from'], op['to'], op['amount'],
+            )
+
+    elif op['type'] == 'withdraw_vesting':
+        settings = db.settings.find_one({'username': op['account']})
+        if settings and settings['withdraw_vesting']:
+            message = 'Received event: %s\nAccount: %s\nVesting shares: %s' % (
+                op['type'], op['account'], op['vesting_shares']
+            )
+
+    elif op['type'] == 'fill_order':
+        settings = db.settings.find_one({'username': op['current_owner']})
+        if settings and settings['fill_order']:
+            message = "Received event: fill_order\n" + \
+                      "Current owner: %s\n" % (op['current_owner']) + \
+                      "Current pays: %s\n" % (op['current_pays']) + \
+                      "Open owner: %s\n" % (op['open_owner']) + \
+                      "Open pays: %s" % (op['open_pays']) 
+
+    elif op['type'] == 'fill_convert_request':
+        settings = db.settings.find_one({'username': op['owner']})
+        if settings and settings['fill_convert_request']:
+            message = 'Received event: fill_convert_request\n' + \
+                      'Owner: %s\n' % op['owner'] + \
+                      'Amount in: %s\n' % op['amount_in'] + \
+                      'Amount out: %s' % op['amount_out']
+
+    elif op['type'] == 'fill_transfer_from_savings':
+        settings = db.settings.find_one({'username': op['from']})
+        if settings and settings['fill_transfer_from_savings']:
+            message = 'Received event: fill_transfer_from_savings\n' + \
+                      'From: %s\n' % op['from'] + \
+                      'To: %s\n' % op['to'] + \
+                      'Amount: %s' % op['amount']
+
+    elif op['type'] == 'fill_vesting_withdraw':
+        settings = db.settings.find_one({'username': op['from_account']})
+        if settings and settings['fill_vesting_withdraw']:
+            message = 'Received event: fill_vesting_withdraw\n' + \
+                      'From account: %s\n' % op['from_account'] + \
+                      'To account: %s\n' % op['to_account'] + \
+                      'Withdrawn: %s\n' % op['withdrawn'] + \
+                      'Deposited: %s' % op['deposited']
+
+    elif op['type'] == 'set_withdraw_vesting_route':
+        pass
+    elif op['type'] == 'change_recovery_account':
+        pass
+    elif op['type'] == 'request_account_recovery':
+        pass
+
+    if settings and message:
         if settings['email']:
             send_mail(settings['email'], 'New Steem Event', message)
         if settings['telegram_channel_id']:
             send_telegram(settings['telegram_channel_id'], message)
-        db.processed_blockchains.insert_one(op)
+
+    db.processed_blockchains.insert_one(op)
 
 
 def send_mail(to, subject, message):
