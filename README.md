@@ -3,6 +3,12 @@ Steem Notifier
 
 Send notifications for various Steem events.
 
+Requirements
+------------
+- Python 3.5+
+- MongoDB (on dev machine)
+- Docker and Docker Compose (on production machine)
+
 Run on development machine
 --------------------------
 
