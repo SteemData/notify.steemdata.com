@@ -51,26 +51,36 @@ class SettingsTests(BaseTests):
     def test_insert_with_valid_data(self):
         numrows = self.db.settings.count()
 
-        with self.app.test_client() as client:
-            response = client.post('/user1', data={
-                'email': 'user1@example.com',
-                'telegram_channel_id': '@samplechannel',
-            })
+        response = self.client.post('/user1', data={
+            'email': 'user1@example.com',
+            'telegram_channel_id': '@samplechannel',
+        })
 
         self.assertEqual(self.db.settings.count(), numrows+1)
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, '/user1')
 
+    def test_insert_with_invalid_data(self):
+        numrows = self.db.settings.count()
+
+        response = self.client.post('/user1', data={
+            'email': 'xxx',
+            'telegram_channel_id': 'yyy',
+        })
+
+        form = self.get_context_variable('form')
+        self.assertEqual(self.db.settings.count(), numrows)
+        self.assertEqual(len(form.errors), 2)
+
     def test_update_with_valid_data(self):
         self.add_settings('user1', email='user1@example.com', transfer=False)
         numrows = self.db.settings.count()
 
-        with self.app.test_client() as client:
-            response = client.post('/user1', data={
-                'email': 'user1@example.com',
-                'telegram_channel_id': '@samplechannel',
-                'transfer': True,
-            })
+        response = self.client.post('/user1', data={
+            'email': 'user1@example.com',
+            'telegram_channel_id': '@samplechannel',
+            'transfer': True,
+        })
 
         self.assertEqual(self.db.settings.count(), numrows)
         settings = self.db.settings.find_one({'username': 'user1'})
