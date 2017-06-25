@@ -35,11 +35,11 @@ Make sure you have [Docker](https://www.docker.com) and [Docker Compose](https:/
 
 1. Build the containers:
 
-      docker-compose build
+        docker-compose build
 
 2. Run the containers:
 
-      docker-compose up -d
+        docker-compose up -d
 
 
 Unit tests
