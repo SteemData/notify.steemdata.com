@@ -1,4 +1,4 @@
-import unittest
+from flask_testing import TestCase
 import os
 import sys
 from test.support import EnvironmentVarGuard
@@ -11,14 +11,20 @@ env.set('MAILGUN_API_KEY', 'sample_key')
 env.set('TELEGRAM_TOKEN', 'sample_token')
 
 from src.blockchain_parser import db
+from src.app import app
 
 
-class BaseTests(unittest.TestCase):
+class BaseTests(TestCase):
     def setUp(self):
         super().setUp()
         self.mailgun_domain_name = os.getenv('MAILGUN_DOMAIN_NAME')
         self.mailgun_api_key = os.getenv('MAILGUN_API_KEY')
         self.telegram_token = os.getenv('TELEGRAM_TOKEN')
+        self.db = db
+
+    def create_app(self):
+        self.app = app
+        return self.app
 
     def tearDown(self):
         super().tearDown()

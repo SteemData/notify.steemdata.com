@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from tests.base import BaseTests
 from src.blockchain_parser import (
-    db, handle_transfer, send_mail, send_telegram,
+    handle_transfer, send_mail, send_telegram,
 )
 
 

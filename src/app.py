@@ -51,7 +51,7 @@ def settings(username):
     if request.method == 'POST' and form.validate():
         data = form.data
         data['username'] = username
-        mongo.db.settings.update({'username': username}, data, upsert=True)
+        mongo.db.settings.update_one({'username': username}, {'$set': data}, upsert=True)
         flash('Successfully saved new settings for %s.' % username)
         return redirect('/%s' % username)
     return render_template('settings.html', username=username, form=form)
