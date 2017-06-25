@@ -1,14 +1,12 @@
 from flask_testing import TestCase
 import os
 import sys
-from test.support import EnvironmentVarGuard
 from unittest.mock import patch
 
-env = EnvironmentVarGuard()
-env.set('MONGO_URI', 'mongodb://localhost:27017/steem_notifier_test')
-env.set('MAILGUN_DOMAIN_NAME', 'example.com')
-env.set('MAILGUN_API_KEY', 'sample_key')
-env.set('TELEGRAM_TOKEN', 'sample_token')
+os.environ['MONGO_URI'] = 'mongodb://localhost:27017/steem_notifier_test'
+os.environ['MAILGUN_DOMAIN_NAME'] = 'example.com'
+os.environ['MAILGUN_API_KEY'] = 'sample_key'
+os.environ['TELEGRAM_TOKEN'] = 'sample_token'
 
 from src.blockchain_parser import db
 from src.app import app
