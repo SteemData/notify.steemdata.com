@@ -34,8 +34,10 @@ def run():
         'fill_vesting_withdraw',
     ]
     for op in b.stream():
-        if op['type'] in types:
+        processed = db.processed_blockchains.find_one({'_id': op['_id']}).count()
+        if op['type'] in types and not processed:
             parse_blockchain(op)
+            db.processed_blockchains.insert_one(op)
 
 
 def parse_blockchain(op):
@@ -96,19 +98,32 @@ def parse_blockchain(op):
                       'Deposited: %s' % op['deposited']
 
     elif op['type'] == 'set_withdraw_vesting_route':
-        pass
+        settings = db.settings.find_one({'username': op['from_account']})
+        if settings and settings['set_withdraw_vesting_route']:
+            message = 'Received event: set_withdraw_vesting_route\n' + \
+                      'From account: %s\n' % op['from_account'] + \
+                      'To account: %s\n' % op['to_account'] + \
+                      'Percent: %s' % op['percent']
+
     elif op['type'] == 'change_recovery_account':
-        pass
+        settings = db.settings.find_one({'username': op['account_to_recover']})
+        if settings and settings['change_recovery_account']:
+            message = 'Received event: change_recovery_account\n' + \
+                      'Account to recover: %s\n' % op['account_to_recover'] + \
+                      'New recovery account: %s' % op['new_recovery_account']
+
     elif op['type'] == 'request_account_recovery':
-        pass
+        settings = db.settings.find_one({'username': op['account_to_recover']})
+        if settings and settings['request_account_recovery']:
+            message = 'Received event: request_account_recovery\n' + \
+                      'Account to recover: %s\n' % op['account_to_recover'] + \
+                      'Recovery account: %s' % op['recovery_account']
 
     if settings and message:
         if settings['email']:
             send_mail(settings['email'], 'New Steem Event', message)
         if settings['telegram_channel_id']:
             send_telegram(settings['telegram_channel_id'], message)
-
-    db.processed_blockchains.insert_one(op)
 
 
 def send_mail(to, subject, message):

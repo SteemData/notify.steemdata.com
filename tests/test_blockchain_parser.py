@@ -359,6 +359,164 @@ class ParseBlockchainTests(BaseTests):
         self.assertEqual(mock_mail.call_count, 0)
         self.assertEqual(mock_telegram.call_count, 0)
 
+    @patch('src.blockchain_parser.send_telegram')
+    @patch('src.blockchain_parser.send_mail')
+    def test_SetWithdrawVestingRoute_with_notification(self, mock_mail, mock_telegram):
+        self.add_settings('user1', 'user1@example.com', 
+                          '@samplechannel', set_withdraw_vesting_route=True)
+
+        op = {
+            "_id" : "4321826d05b371f518cd44196318d73964f8e588",
+            "auto_vest" : False,
+            "to_account" : "user2",
+            "trx_id" : "13441f93a1bb7f41ebfc95f1d280e44fdacc76f6",
+            "timestamp" : datetime.datetime.utcnow(),
+            "from_account" : "user1",
+            "block_num" : 13170400,
+            "type" : "set_withdraw_vesting_route",
+            "percent" : 10000
+        }
+        parse_blockchain(op)
+
+        msg = 'Received event: set_withdraw_vesting_route\n' \
+              'From account: user1\n' \
+              'To account: user2\n' \
+              'Percent: 10000'
+        mock_mail.assert_called_once_with('user1@example.com', 'New Steem Event', msg)
+        mock_telegram.assert_called_once_with('@samplechannel', msg)
+
+    @patch('src.blockchain_parser.send_telegram')
+    @patch('src.blockchain_parser.send_mail')
+    def test_SetWithdrawVestingRoute_without_notification(self, mock_mail, mock_telegram):
+        self.add_settings('user1', 'user1@example.com', 
+                          '@samplechannel', set_withdraw_vesting_route=False)
+
+        op = {
+            "_id" : "4321826d05b371f518cd44196318d73964f8e588",
+            "auto_vest" : False,
+            "to_account" : "user2",
+            "trx_id" : "13441f93a1bb7f41ebfc95f1d280e44fdacc76f6",
+            "timestamp" : datetime.datetime.utcnow(),
+            "from_account" : "user1",
+            "block_num" : 13170400,
+            "type" : "set_withdraw_vesting_route",
+            "percent" : 10000
+        }
+        parse_blockchain(op)
+
+        self.assertEqual(mock_mail.call_count, 0)
+        self.assertEqual(mock_telegram.call_count, 0)
+
+    @patch('src.blockchain_parser.send_telegram')
+    @patch('src.blockchain_parser.send_mail')
+    def test_ChangeRecoveryAccount_with_notification(self, mock_mail, mock_telegram):
+        self.add_settings('krishtopa', 'krishtopa@example.com', 
+                          '@samplechannel', change_recovery_account=True)
+
+        op = {
+            "_id" : "318bb3f2064620b9cea03ffdd635b31b37569596",
+            "block_num" : 12879142,
+            "trx_id" : "7c44a7e1cb9e09643db901ec474ba8a74971f4de",
+            "type" : "change_recovery_account",
+            "timestamp" : datetime.datetime.utcnow(),
+            "new_recovery_account" : "kental",
+            "account_to_recover" : "krishtopa",
+            "extensions" : [ ]
+        }
+        parse_blockchain(op)
+
+        msg = 'Received event: change_recovery_account\n' \
+              'Account to recover: krishtopa\n' \
+              'New recovery account: kental'
+        mock_mail.assert_called_once_with('krishtopa@example.com', 'New Steem Event', msg)
+        mock_telegram.assert_called_once_with('@samplechannel', msg)
+
+    @patch('src.blockchain_parser.send_telegram')
+    @patch('src.blockchain_parser.send_mail')
+    def test_ChangeRecoveryAccount_without_notification(self, mock_mail, mock_telegram):
+        self.add_settings('user1', 'user1@example.com', 
+                          '@samplechannel', change_recovery_account=False)
+
+        op = {
+            "_id" : "318bb3f2064620b9cea03ffdd635b31b37569596",
+            "block_num" : 12879142,
+            "trx_id" : "7c44a7e1cb9e09643db901ec474ba8a74971f4de",
+            "type" : "change_recovery_account",
+            "timestamp" : datetime.datetime.utcnow(),
+            "new_recovery_account" : "kental",
+            "account_to_recover" : "krishtopa",
+            "extensions" : [ ]
+        }
+        parse_blockchain(op)
+
+        self.assertEqual(mock_mail.call_count, 0)
+        self.assertEqual(mock_telegram.call_count, 0)
+
+    @patch('src.blockchain_parser.send_telegram')
+    @patch('src.blockchain_parser.send_mail')
+    def test_RequestAccountRecovery_with_notification(self, mock_mail, mock_telegram):
+        self.add_settings('mreichardt', 'mreichardt@example.com', 
+                          '@samplechannel', request_account_recovery=True)
+
+        op = {
+            "_id" : "218aa78e303c4a5e9389a465633639d74609ec0b",
+            "trx_id" : "da0e78c22dde8014148092d1bc02e42ab106c81b",
+            "account_to_recover" : "mreichardt",
+            "type" : "request_account_recovery",
+            "block_num" : 13134522,
+            "new_owner_authority" : {
+                "key_auths" : [
+                    [
+                        "STM5vX56cxZnj4UoLGSGrzJmoGvsHL3gPtFvGVnAJ8H9dUHNMjQCz",
+                        1
+                    ]
+                ],
+                "account_auths" : [ ],
+                "weight_threshold" : 1
+            },
+            "extensions" : [ ],
+            "recovery_account" : "steem",
+            "timestamp" : datetime.datetime.utcnow()
+        }
+        parse_blockchain(op)
+
+        msg = 'Received event: request_account_recovery\n' \
+              'Account to recover: mreichardt\n' + \
+              'Recovery account: steem'
+        mock_mail.assert_called_once_with('mreichardt@example.com', 'New Steem Event', msg)
+        mock_telegram.assert_called_once_with('@samplechannel', msg)
+
+    @patch('src.blockchain_parser.send_telegram')
+    @patch('src.blockchain_parser.send_mail')
+    def test_RequestAccountRecovery_without_notification(self, mock_mail, mock_telegram):
+        self.add_settings('mreichardt', 'mreichardt@example.com', 
+                          '@samplechannel', request_account_recovery=False)
+
+        op = {
+            "_id" : "218aa78e303c4a5e9389a465633639d74609ec0b",
+            "trx_id" : "da0e78c22dde8014148092d1bc02e42ab106c81b",
+            "account_to_recover" : "mreichardt",
+            "type" : "request_account_recovery",
+            "block_num" : 13134522,
+            "new_owner_authority" : {
+                "key_auths" : [
+                    [
+                        "STM5vX56cxZnj4UoLGSGrzJmoGvsHL3gPtFvGVnAJ8H9dUHNMjQCz",
+                        1
+                    ]
+                ],
+                "account_auths" : [ ],
+                "weight_threshold" : 1
+            },
+            "extensions" : [ ],
+            "recovery_account" : "steem",
+            "timestamp" : datetime.datetime.utcnow()
+        }
+        parse_blockchain(op)
+
+        self.assertEqual(mock_mail.call_count, 0)
+        self.assertEqual(mock_telegram.call_count, 0)
+
 
 class SendMailTests(BaseTests):
 
