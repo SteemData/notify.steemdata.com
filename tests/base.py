@@ -10,7 +10,7 @@ os.environ['MAILGUN_API_KEY'] = 'sample_key'
 os.environ['TELEGRAM_TOKEN'] = 'sample_token'
 os.environ['STEEM_WALLET'] = 'ourwallet'
 
-from src.blockchain_worker import db
+from src.worker import db
 from src.app import app
 
 

@@ -10,5 +10,3 @@ ENV FLASK_HOST 0.0.0.0
 RUN cd /app && \
     apt-get update && \
     pip install -r requirements.txt
-
-CMD ["python", "src/app.py"]
