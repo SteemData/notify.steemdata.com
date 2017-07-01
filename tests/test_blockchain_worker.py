@@ -3,15 +3,13 @@ from datetime import datetime, timedelta
 from unittest.mock import patch
 
 from tests.base import BaseTests
-from src.blockchain_parser import (
-    parse_blockchain, find_user_settings, send_mail, send_telegram,
-)
+from src.blockchain_worker import parse_blockchain
 
 
 class ParseBlockchainTests(BaseTests):
 
-    @patch('src.blockchain_parser.send_telegram')
-    @patch('src.blockchain_parser.send_mail')
+    @patch('src.blockchain_worker.send_telegram')
+    @patch('src.blockchain_worker.send_mail')
     def test_AccountUpdate_with_notification(self, mock_mail, mock_telegram):
         self.add_settings('user1', 'user1@example.com', '@samplechannel', account_update=True)
 
@@ -31,8 +29,8 @@ class ParseBlockchainTests(BaseTests):
         mock_mail.assert_called_once_with('user1@example.com', 'New Steem Event', msg)
         mock_telegram.assert_called_once_with('@samplechannel', msg)
 
-    @patch('src.blockchain_parser.send_telegram')
-    @patch('src.blockchain_parser.send_mail')
+    @patch('src.blockchain_worker.send_telegram')
+    @patch('src.blockchain_worker.send_mail')
     def test_AccountUpdate_without_notification(self, mock_mail, mock_telegram):
         self.add_settings('user1', 'user1@example.com', '@samplechannel', account_update=False)
 
@@ -51,8 +49,8 @@ class ParseBlockchainTests(BaseTests):
         self.assertEqual(mock_mail.call_count, 0)
         self.assertEqual(mock_telegram.call_count, 0)
 
-    @patch('src.blockchain_parser.send_telegram')
-    @patch('src.blockchain_parser.send_mail')
+    @patch('src.blockchain_worker.send_telegram')
+    @patch('src.blockchain_worker.send_mail')
     def test_transfer_with_notification(self, mock_mail, mock_telegram):
         self.add_settings('user1', 'user1@example.com', '@samplechannel', transfer=True)
 
@@ -81,8 +79,8 @@ class ParseBlockchainTests(BaseTests):
             'Event detail: user1 -> user2 (4.726 STEEM)',
         )
 
-    @patch('src.blockchain_parser.send_telegram')
-    @patch('src.blockchain_parser.send_mail')
+    @patch('src.blockchain_worker.send_telegram')
+    @patch('src.blockchain_worker.send_mail')
     def test_transfer_without_notification(self, mock_mail, mock_telegram):
         self.add_settings('user1', 'user1@example.com', '@samplechannel', transfer=False)
 
@@ -102,8 +100,8 @@ class ParseBlockchainTests(BaseTests):
         self.assertEqual(mock_mail.call_count, 0)
         self.assertEqual(mock_telegram.call_count, 0)
 
-    @patch('src.blockchain_parser.send_telegram')
-    @patch('src.blockchain_parser.send_mail')
+    @patch('src.blockchain_worker.send_telegram')
+    @patch('src.blockchain_worker.send_mail')
     def test_transferfromsavings_with_notification(self, mock_mail, mock_telegram):
         self.add_settings('user1', 'user1@example.com', 
                           '@samplechannel', transfer_from_savings=True)
@@ -134,8 +132,8 @@ class ParseBlockchainTests(BaseTests):
             'Event detail: user1 -> user2 (7.283 STEEM)',
         )
 
-    @patch('src.blockchain_parser.send_telegram')
-    @patch('src.blockchain_parser.send_mail')
+    @patch('src.blockchain_worker.send_telegram')
+    @patch('src.blockchain_worker.send_mail')
     def test_TransferFromSavings_without_notification(self, mock_mail, mock_telegram):
         self.add_settings('user1', 'user1@example.com', 
                           '@samplechannel', transfer_from_savings=False)
@@ -157,8 +155,8 @@ class ParseBlockchainTests(BaseTests):
         self.assertEqual(mock_mail.call_count, 0)
         self.assertEqual(mock_telegram.call_count, 0)
 
-    @patch('src.blockchain_parser.send_telegram')
-    @patch('src.blockchain_parser.send_mail')
+    @patch('src.blockchain_worker.send_telegram')
+    @patch('src.blockchain_worker.send_mail')
     def test_WithdrawVesting_with_notification(self, mock_mail, mock_telegram):
         self.add_settings('user1', 'user1@example.com', 
                           '@samplechannel', withdraw_vesting=True)
@@ -180,8 +178,8 @@ class ParseBlockchainTests(BaseTests):
         mock_mail.assert_called_once_with('user1@example.com', 'New Steem Event', msg)
         mock_telegram.assert_called_once_with('@samplechannel', msg)
 
-    @patch('src.blockchain_parser.send_telegram')
-    @patch('src.blockchain_parser.send_mail')
+    @patch('src.blockchain_worker.send_telegram')
+    @patch('src.blockchain_worker.send_mail')
     def test_WithdrawVesting_without_notification(self, mock_mail, mock_telegram):
         self.add_settings('user1', 'user1@example.com', 
                           '@samplechannel', withdraw_vesting=False)
@@ -200,8 +198,8 @@ class ParseBlockchainTests(BaseTests):
         self.assertEqual(mock_mail.call_count, 0)
         self.assertEqual(mock_telegram.call_count, 0)
 
-    @patch('src.blockchain_parser.send_telegram')
-    @patch('src.blockchain_parser.send_mail')
+    @patch('src.blockchain_worker.send_telegram')
+    @patch('src.blockchain_worker.send_mail')
     def test_FillOrder_with_notification(self, mock_mail, mock_telegram):
         self.add_settings('user1', 'user1@example.com', 
                           '@samplechannel', fill_order=True)
@@ -229,8 +227,8 @@ class ParseBlockchainTests(BaseTests):
         mock_mail.assert_called_once_with('user1@example.com', 'New Steem Event', msg)
         mock_telegram.assert_called_once_with('@samplechannel', msg)
 
-    @patch('src.blockchain_parser.send_telegram')
-    @patch('src.blockchain_parser.send_mail')
+    @patch('src.blockchain_worker.send_telegram')
+    @patch('src.blockchain_worker.send_mail')
     def test_FillOrder_without_notification(self, mock_mail, mock_telegram):
         self.add_settings('user1', 'user1@example.com', 
                           '@samplechannel', fill_order=False)
@@ -253,8 +251,8 @@ class ParseBlockchainTests(BaseTests):
         self.assertEqual(mock_mail.call_count, 0)
         self.assertEqual(mock_telegram.call_count, 0)
 
-    @patch('src.blockchain_parser.send_telegram')
-    @patch('src.blockchain_parser.send_mail')
+    @patch('src.blockchain_worker.send_telegram')
+    @patch('src.blockchain_worker.send_mail')
     def test_FillConvertRequest_with_notification(self, mock_mail, mock_telegram):
         self.add_settings('user1', 'user1@example.com', 
                           '@samplechannel', fill_convert_request=True)
@@ -279,8 +277,8 @@ class ParseBlockchainTests(BaseTests):
         mock_mail.assert_called_once_with('user1@example.com', 'New Steem Event', msg)
         mock_telegram.assert_called_once_with('@samplechannel', msg)
 
-    @patch('src.blockchain_parser.send_telegram')
-    @patch('src.blockchain_parser.send_mail')
+    @patch('src.blockchain_worker.send_telegram')
+    @patch('src.blockchain_worker.send_mail')
     def test_FillConvertRequest_without_notification(self, mock_mail, mock_telegram):
         self.add_settings('user1', 'user1@example.com', 
                           '@samplechannel', fill_convert_request=False)
@@ -301,8 +299,8 @@ class ParseBlockchainTests(BaseTests):
         self.assertEqual(mock_mail.call_count, 0)
         self.assertEqual(mock_telegram.call_count, 0)
 
-    @patch('src.blockchain_parser.send_telegram')
-    @patch('src.blockchain_parser.send_mail')
+    @patch('src.blockchain_worker.send_telegram')
+    @patch('src.blockchain_worker.send_mail')
     def test_FillTransferFromSavings_with_notification(self, mock_mail, mock_telegram):
         self.add_settings('user1', 'user1@example.com', 
                           '@samplechannel', fill_transfer_from_savings=True)
@@ -328,8 +326,8 @@ class ParseBlockchainTests(BaseTests):
         mock_mail.assert_called_once_with('user1@example.com', 'New Steem Event', msg)
         mock_telegram.assert_called_once_with('@samplechannel', msg)
 
-    @patch('src.blockchain_parser.send_telegram')
-    @patch('src.blockchain_parser.send_mail')
+    @patch('src.blockchain_worker.send_telegram')
+    @patch('src.blockchain_worker.send_mail')
     def test_FillTransferFromSavings_without_notification(self, mock_mail, mock_telegram):
         self.add_settings('user1', 'user1@example.com', 
                           '@samplechannel', fill_transfer_from_savings=False)
@@ -351,8 +349,8 @@ class ParseBlockchainTests(BaseTests):
         self.assertEqual(mock_mail.call_count, 0)
         self.assertEqual(mock_telegram.call_count, 0)
 
-    @patch('src.blockchain_parser.send_telegram')
-    @patch('src.blockchain_parser.send_mail')
+    @patch('src.blockchain_worker.send_telegram')
+    @patch('src.blockchain_worker.send_mail')
     def test_FillVestingWithdraw_with_notification(self, mock_mail, mock_telegram):
         self.add_settings('user1', 'user1@example.com', 
                           '@samplechannel', fill_vesting_withdraw=True)
@@ -378,8 +376,8 @@ class ParseBlockchainTests(BaseTests):
         mock_mail.assert_called_once_with('user1@example.com', 'New Steem Event', msg)
         mock_telegram.assert_called_once_with('@samplechannel', msg)
 
-    @patch('src.blockchain_parser.send_telegram')
-    @patch('src.blockchain_parser.send_mail')
+    @patch('src.blockchain_worker.send_telegram')
+    @patch('src.blockchain_worker.send_mail')
     def test_FillVestingWithdraw_without_notification(self, mock_mail, mock_telegram):
         self.add_settings('user1', 'user1@example.com', 
                           '@samplechannel', fill_vesting_withdraw=False)
@@ -400,8 +398,8 @@ class ParseBlockchainTests(BaseTests):
         self.assertEqual(mock_mail.call_count, 0)
         self.assertEqual(mock_telegram.call_count, 0)
 
-    @patch('src.blockchain_parser.send_telegram')
-    @patch('src.blockchain_parser.send_mail')
+    @patch('src.blockchain_worker.send_telegram')
+    @patch('src.blockchain_worker.send_mail')
     def test_SetWithdrawVestingRoute_with_notification(self, mock_mail, mock_telegram):
         self.add_settings('user1', 'user1@example.com', 
                           '@samplechannel', set_withdraw_vesting_route=True)
@@ -426,8 +424,8 @@ class ParseBlockchainTests(BaseTests):
         mock_mail.assert_called_once_with('user1@example.com', 'New Steem Event', msg)
         mock_telegram.assert_called_once_with('@samplechannel', msg)
 
-    @patch('src.blockchain_parser.send_telegram')
-    @patch('src.blockchain_parser.send_mail')
+    @patch('src.blockchain_worker.send_telegram')
+    @patch('src.blockchain_worker.send_mail')
     def test_SetWithdrawVestingRoute_without_notification(self, mock_mail, mock_telegram):
         self.add_settings('user1', 'user1@example.com', 
                           '@samplechannel', set_withdraw_vesting_route=False)
@@ -448,8 +446,8 @@ class ParseBlockchainTests(BaseTests):
         self.assertEqual(mock_mail.call_count, 0)
         self.assertEqual(mock_telegram.call_count, 0)
 
-    @patch('src.blockchain_parser.send_telegram')
-    @patch('src.blockchain_parser.send_mail')
+    @patch('src.blockchain_worker.send_telegram')
+    @patch('src.blockchain_worker.send_mail')
     def test_ChangeRecoveryAccount_with_notification(self, mock_mail, mock_telegram):
         self.add_settings('krishtopa', 'krishtopa@example.com', 
                           '@samplechannel', change_recovery_account=True)
@@ -472,8 +470,8 @@ class ParseBlockchainTests(BaseTests):
         mock_mail.assert_called_once_with('krishtopa@example.com', 'New Steem Event', msg)
         mock_telegram.assert_called_once_with('@samplechannel', msg)
 
-    @patch('src.blockchain_parser.send_telegram')
-    @patch('src.blockchain_parser.send_mail')
+    @patch('src.blockchain_worker.send_telegram')
+    @patch('src.blockchain_worker.send_mail')
     def test_ChangeRecoveryAccount_without_notification(self, mock_mail, mock_telegram):
         self.add_settings('user1', 'user1@example.com', 
                           '@samplechannel', change_recovery_account=False)
@@ -493,8 +491,8 @@ class ParseBlockchainTests(BaseTests):
         self.assertEqual(mock_mail.call_count, 0)
         self.assertEqual(mock_telegram.call_count, 0)
 
-    @patch('src.blockchain_parser.send_telegram')
-    @patch('src.blockchain_parser.send_mail')
+    @patch('src.blockchain_worker.send_telegram')
+    @patch('src.blockchain_worker.send_mail')
     def test_RequestAccountRecovery_with_notification(self, mock_mail, mock_telegram):
         self.add_settings('mreichardt', 'mreichardt@example.com', 
                           '@samplechannel', request_account_recovery=True)
@@ -527,8 +525,8 @@ class ParseBlockchainTests(BaseTests):
         mock_mail.assert_called_once_with('mreichardt@example.com', 'New Steem Event', msg)
         mock_telegram.assert_called_once_with('@samplechannel', msg)
 
-    @patch('src.blockchain_parser.send_telegram')
-    @patch('src.blockchain_parser.send_mail')
+    @patch('src.blockchain_worker.send_telegram')
+    @patch('src.blockchain_worker.send_mail')
     def test_RequestAccountRecovery_without_notification(self, mock_mail, mock_telegram):
         self.add_settings('mreichardt', 'mreichardt@example.com', 
                           '@samplechannel', request_account_recovery=False)
@@ -558,7 +556,7 @@ class ParseBlockchainTests(BaseTests):
         self.assertEqual(mock_mail.call_count, 0)
         self.assertEqual(mock_telegram.call_count, 0)
 
-    @patch('src.blockchain_parser.send_mail')
+    @patch('src.blockchain_worker.send_mail')
     def test_send_notification_to_confirmed_settings_only(self, mock_mail):
         self.add_settings('user1', 'a@a.com', account_update=True, confirmed=True, 
                           created_at=datetime.utcnow() - timedelta(days=3))
@@ -585,93 +583,3 @@ class ParseBlockchainTests(BaseTests):
             'New Steem Event', 
             'Received event: account_update (user1)',
         )
-
-
-class FindUserSettingsTests(BaseTests):
-    today = datetime.utcnow()
-    yesterday = datetime.utcnow() - timedelta(days=1)
-    twodaysago = datetime.utcnow() - timedelta(days=2)
-
-    def test_get_the_latest_confirmed_settings(self):
-        id_1 = self.add_settings('a', 'a@a.com', confirmed=True, created_at=self.twodaysago)
-        id_2 = self.add_settings('a', 'b@b.com', confirmed=True, created_at=self.yesterday)
-        id_3 = self.add_settings('a', 'c@c.com', confirmed=False, created_at=self.today)
-
-        settings = find_user_settings('a')
-
-        self.assertEqual(settings.get('_id'), id_2)
-        self.assertEqual(settings.get('email'), 'b@b.com')
-
-    def test_no_confirmed_settings(self):
-        self.add_settings('a', 'a@a.com', confirmed=False, created_at=self.twodaysago)
-        self.add_settings('a', 'b@b.com', confirmed=False, created_at=self.yesterday)
-        self.add_settings('a', 'c@c.com', confirmed=False, created_at=self.today)
-
-        self.assertEqual(find_user_settings('a'), dict())
-
-
-class SendMailTests(BaseTests):
-
-    @patch('requests.post')
-    def test_success_email(self, mock_r):
-        send_mail('bob@example.com', 'sample email', 'sample message')
-
-        mock_r.assert_called_with(
-            'https://api.mailgun.net/v3/%s/messages' % self.mailgun_domain_name,
-            auth={'api': self.mailgun_api_key},
-            data={
-                'from': 'noreply@%s' % self.mailgun_domain_name, 
-                'to': ['bob@example.com'], 
-                'subject': 'sample email', 
-                'text': 'sample message',
-            },
-        )
-        if hasattr(sys.stdout, 'getvalue'):
-            self.assertEqual(
-                sys.stdout.getvalue(), 
-                'Sent mail to: bob@example.com.\n',
-            )
-
-    @patch('requests.post')
-    def test_failed_email(self, mock_r):
-        mock_r.side_effect = Exception('Something went wrong.')
-
-        send_mail('user@example.com', 'xxx', 'yyy')
-
-        if hasattr(sys.stdout, 'getvalue'):
-            self.assertEqual(
-                sys.stdout.getvalue(), 
-                'Failed sending email to: user@example.com.\n',
-            )
-
-
-class SendTelegramTests(BaseTests):
-
-    @patch('requests.post')
-    def test_success(self, mock_r):
-        send_telegram('@samplechannel', 'sample message')
-
-        mock_r.assert_called_with(
-            'https://api.telegram.org/bot%s/sendMessage' % self.telegram_token,
-            data={
-                'chat_id': '@samplechannel',
-                'text': 'sample message',
-            }
-        )
-        if hasattr(sys.stdout, 'getvalue'):
-            self.assertEqual(
-                sys.stdout.getvalue(), 
-                'Sent notification to: @samplechannel.\n',
-            )
-
-    @patch('requests.post')
-    def test_failed(self, mock_r):
-        mock_r.side_effect = Exception('something went wrong')
-
-        send_telegram('@xxx', 'yyy')
-
-        if hasattr(sys.stdout, 'getvalue'):
-            self.assertEqual(
-                sys.stdout.getvalue(), 
-                'Failed sending telegram message to: @xxx.\n',
-            )

@@ -9,9 +9,9 @@
       <div class="four wide column"><!--dummy padding--></div>
 
       <div class="ui eight wide column">
-        {% if not settings.confirmed %}
+        {% if settings._id and not settings.confirmed %}
           <div class="ui success message visible">
-            <p>Confirm your update by sending BTC 0.001 with the following memo: <strong>{{ settings._id }}</strong></p>
+            <p>Please confirm your update by sending STEEM 0.001 with the following memo: <strong>{{ settings._id }}</strong></p>
           </div>
         {% endif %}
 

@@ -8,8 +8,9 @@ os.environ['MONGO_URI'] = 'mongodb://localhost:27017/steem_notifier_test'
 os.environ['MAILGUN_DOMAIN_NAME'] = 'example.com'
 os.environ['MAILGUN_API_KEY'] = 'sample_key'
 os.environ['TELEGRAM_TOKEN'] = 'sample_token'
+os.environ['STEEM_WALLET'] = 'ourwallet'
 
-from src.blockchain_parser import db
+from src.blockchain_worker import db
 from src.app import app
 
 
@@ -19,6 +20,7 @@ class BaseTests(TestCase):
         self.mailgun_domain_name = os.getenv('MAILGUN_DOMAIN_NAME')
         self.mailgun_api_key = os.getenv('MAILGUN_API_KEY')
         self.telegram_token = os.getenv('TELEGRAM_TOKEN')
+        self.steem_wallet = os.getenv('STEEM_WALLET')
         self.db = db
 
     def create_app(self):

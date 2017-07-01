@@ -19,7 +19,7 @@ services:
         max-file: '2'
     command: python src/app.py
 
-  worker:
+  blockchain_worker:
     build: .
     depends_on:
       - mongodb
@@ -33,7 +33,24 @@ services:
       options:
         max-size: '10m'
         max-file: '2'
-    command: python src/blockchain_parser.py
+    command: python src/blockchain_worker.py
+
+  confirmation_worker:
+    build: .
+    depends_on:
+      - mongodb
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/steem_notifier
+      - TELEGRAM_TOKEN=380184752:AAEObQIeG0ve_IVanUnR-p8GAdW9PRwVL_c
+      - MAILGUN_DOMAIN_NAME=example.com
+      - MAILGUN_API_KEY=abcdef
+      - STEEM_WALLET=furion
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '2'
+    command: python src/confirmation_worker.py
 
   mongodb:
     image: mongo:3.5
