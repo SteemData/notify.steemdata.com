@@ -3,6 +3,7 @@
 
 import re
 import os
+from datetime import datetime
 
 from flask import Flask, request, render_template, redirect, flash
 from flask_pymongo import PyMongo
@@ -44,17 +45,27 @@ class NotificationSettingsForm(Form):
 
 @app.route('/<username>', methods=['GET', 'POST'])
 def settings(username):
-    form = NotificationSettingsForm(
-        request.form, 
-        data=mongo.db.settings.find_one({'username': username}),
-    )
+    try:
+        rows = mongo.db.settings.find({'username': username}).sort('created_at', -1)
+        initial = rows[0]
+    except Exception as e:
+        initial = dict()
+    form = NotificationSettingsForm(request.form, data=initial)
     if request.method == 'POST' and form.validate():
         data = form.data
         data['username'] = username
-        mongo.db.settings.update_one({'username': username}, {'$set': data}, upsert=True)
-        flash('Successfully saved new settings for %s.' % username)
+        data['confirmed'] = False
+        data['created_at'] = datetime.utcnow()
+        new_id = mongo.db.settings.insert_one(data).inserted_id
+        flash('Confirm your update by sending BTC 0.001 with the following memo: ' + \
+              '<strong>%s</strong>' % new_id)
         return redirect('/%s' % username)
-    return render_template('settings.html', username=username, form=form)
+    return render_template(
+        'settings.html', 
+        username=username, 
+        form=form,
+        settings=initial,
+    )
 
 
 if __name__ == "__main__":

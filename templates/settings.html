@@ -9,13 +9,11 @@
       <div class="four wide column"><!--dummy padding--></div>
 
       <div class="ui eight wide column">
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            <div class="ui success message visible">
-              <p>{{ messages.0 }}</p>
-            </div>
-          {% endif %}
-        {% endwith %}
+        {% if not settings.confirmed %}
+          <div class="ui success message visible">
+            <p>Confirm your update by sending BTC 0.001 with the following memo: <strong>{{ settings._id }}</strong></p>
+          </div>
+        {% endif %}
 
         {% if form.errors %}
           <div class="ui error message visible">

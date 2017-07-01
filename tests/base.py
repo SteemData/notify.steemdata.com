@@ -1,7 +1,8 @@
-from flask_testing import TestCase
 import os
 import sys
+from datetime import datetime
 from unittest.mock import patch
+from flask_testing import TestCase
 
 os.environ['MONGO_URI'] = 'mongodb://localhost:27017/steem_notifier_test'
 os.environ['MAILGUN_DOMAIN_NAME'] = 'example.com'
@@ -36,8 +37,10 @@ class BaseTests(TestCase):
                      transfer_from_savings=False, set_withdraw_vesting_route=False,
                      withdraw_vesting=False, fill_order=False,
                      fill_convert_request=False, fill_transfer_from_savings=False,
-                     fill_vesting_withdraw=False):
-        db.settings.insert_one({
+                     fill_vesting_withdraw=False, confirmed=True, created_at=None):
+        if not created_at:
+            created_at = datetime.utcnow()
+        result = db.settings.insert_one({
             'username': username,
             'email': email,
             'telegram_channel_id': telegram_channel_id,
@@ -52,4 +55,7 @@ class BaseTests(TestCase):
             'fill_convert_request': fill_convert_request,
             'fill_transfer_from_savings': fill_transfer_from_savings,
             'fill_vesting_withdraw': fill_vesting_withdraw,
+            'confirmed': confirmed,
+            'created_at': created_at,
         })
+        return result.inserted_id

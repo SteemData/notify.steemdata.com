@@ -1,14 +1,55 @@
-import datetime
 import sys
+from datetime import datetime, timedelta
 from unittest.mock import patch
 
 from tests.base import BaseTests
 from src.blockchain_parser import (
-    parse_blockchain, send_mail, send_telegram,
+    parse_blockchain, find_user_settings, send_mail, send_telegram,
 )
 
 
 class ParseBlockchainTests(BaseTests):
+
+    @patch('src.blockchain_parser.send_telegram')
+    @patch('src.blockchain_parser.send_mail')
+    def test_AccountUpdate_with_notification(self, mock_mail, mock_telegram):
+        self.add_settings('user1', 'user1@example.com', '@samplechannel', account_update=True)
+
+        op = {
+            "_id" : "aa742915485383ed29c6d58ca4b36b68cc56e716",
+            "type" : "account_update",
+            "timestamp" : datetime.utcnow(),
+            "account" : "user1",
+            "block_num" : 13277829,
+            "json_metadata" : "{\"profile\":{\"name\":\"PaulN\",\"about\":\"Husband Father Entrepreneur Soccer\",\"location\":\"Cape Town, South Africa\",\"website\":\"https://cocopan.co.za\"}}",
+            "memo_key" : "STM5HxZ49aAbAN975PSHZHCRJaFqfUSgxFJNKHQMw9vWHafJoeS6Z",
+            "trx_id" : "63c6fb2abeca96e3e9465cbfe19ec17e92e3fb19"
+        }
+        parse_blockchain(op)
+
+        msg = 'Received event: account_update (user1)'
+        mock_mail.assert_called_once_with('user1@example.com', 'New Steem Event', msg)
+        mock_telegram.assert_called_once_with('@samplechannel', msg)
+
+    @patch('src.blockchain_parser.send_telegram')
+    @patch('src.blockchain_parser.send_mail')
+    def test_AccountUpdate_without_notification(self, mock_mail, mock_telegram):
+        self.add_settings('user1', 'user1@example.com', '@samplechannel', account_update=False)
+
+        op = {
+            "_id" : "aa742915485383ed29c6d58ca4b36b68cc56e716",
+            "type" : "account_update",
+            "timestamp" : datetime.utcnow(),
+            "account" : "user1",
+            "block_num" : 13277829,
+            "json_metadata" : "{\"profile\":{\"name\":\"PaulN\",\"about\":\"Husband Father Entrepreneur Soccer\",\"location\":\"Cape Town, South Africa\",\"website\":\"https://cocopan.co.za\"}}",
+            "memo_key" : "STM5HxZ49aAbAN975PSHZHCRJaFqfUSgxFJNKHQMw9vWHafJoeS6Z",
+            "trx_id" : "63c6fb2abeca96e3e9465cbfe19ec17e92e3fb19"
+        }
+        parse_blockchain(op)
+
+        self.assertEqual(mock_mail.call_count, 0)
+        self.assertEqual(mock_telegram.call_count, 0)
 
     @patch('src.blockchain_parser.send_telegram')
     @patch('src.blockchain_parser.send_mail')
@@ -22,7 +63,7 @@ class ParseBlockchainTests(BaseTests):
             "amount" : "4.726 STEEM",
             "memo" : "",
             "type" : "transfer",
-            "timestamp" : datetime.datetime.utcnow(),
+            "timestamp" : datetime.utcnow(),
             "block_num" : 13095969,
             "trx_id" : "9dfe1d3f31a12907e73fc74efdd1ad11a18a8581"
         }
@@ -52,7 +93,7 @@ class ParseBlockchainTests(BaseTests):
             "amount" : "4.726 STEEM",
             "memo" : "",
             "type" : "transfer",
-            "timestamp" : datetime.datetime.utcnow(),
+            "timestamp" : datetime.utcnow(),
             "block_num" : 13095969,
             "trx_id" : "9dfe1d3f31a12907e73fc74efdd1ad11a18a8581"
         }
@@ -75,7 +116,7 @@ class ParseBlockchainTests(BaseTests):
             "amount" : "7.283 STEEM",
             "memo" : "",
             "type" : "transfer_from_savings",
-            "timestamp" : datetime.datetime.utcnow(),
+            "timestamp" : datetime.utcnow(),
             "block_num" : 13096166,
             "trx_id" : "4e3316dedf5d209533929d5759569077440ce7fa"
         }
@@ -107,7 +148,7 @@ class ParseBlockchainTests(BaseTests):
             "amount" : "7.283 STEEM",
             "memo" : "",
             "type" : "transfer_from_savings",
-            "timestamp" : datetime.datetime.utcnow(),
+            "timestamp" : datetime.utcnow(),
             "block_num" : 13096166,
             "trx_id" : "4e3316dedf5d209533929d5759569077440ce7fa"
         }
@@ -127,7 +168,7 @@ class ParseBlockchainTests(BaseTests):
             "account" : "user1",
             "vesting_shares" : "1236574.074057 VESTS",
             "type" : "withdraw_vesting",
-            "timestamp" : datetime.datetime.utcnow(),
+            "timestamp" : datetime.utcnow(),
             "block_num" : 13096004,
             "trx_id" : "eb8a2b1b0b569b4a3c3f58516f8efec3a2214e88"
         }
@@ -150,7 +191,7 @@ class ParseBlockchainTests(BaseTests):
             "account" : "user1",
             "vesting_shares" : "1236574.074057 VESTS",
             "type" : "withdraw_vesting",
-            "timestamp" : datetime.datetime.utcnow(),
+            "timestamp" : datetime.utcnow(),
             "block_num" : 13096004,
             "trx_id" : "eb8a2b1b0b569b4a3c3f58516f8efec3a2214e88"
         }
@@ -174,7 +215,7 @@ class ParseBlockchainTests(BaseTests):
             "open_orderid" : 1000,
             "open_pays" : "64.553 SBD",
             "type" : "fill_order",
-            "timestamp" : datetime.datetime.utcnow(),
+            "timestamp" : datetime.utcnow(),
             "block_num" : 13095963,
             "trx_id" : "3cddc145ddd17aacffa5a5aad4fbbaa490e097b9"
         }
@@ -203,7 +244,7 @@ class ParseBlockchainTests(BaseTests):
             "open_orderid" : 1000,
             "open_pays" : "64.553 SBD",
             "type" : "fill_order",
-            "timestamp" : datetime.datetime.utcnow(),
+            "timestamp" : datetime.utcnow(),
             "block_num" : 13095963,
             "trx_id" : "3cddc145ddd17aacffa5a5aad4fbbaa490e097b9"
         }
@@ -225,7 +266,7 @@ class ParseBlockchainTests(BaseTests):
             "amount_in" : "27.000 SBD",
             "amount_out" : "12.534 STEEM",
             "type" : "fill_convert_request",
-            "timestamp" : datetime.datetime.utcnow(),
+            "timestamp" : datetime.utcnow(),
             "block_num" : 13096024,
             "trx_id" : "0000000000000000000000000000000000000000"
         }
@@ -251,7 +292,7 @@ class ParseBlockchainTests(BaseTests):
             "amount_in" : "27.000 SBD",
             "amount_out" : "12.534 STEEM",
             "type" : "fill_convert_request",
-            "timestamp" : datetime.datetime.utcnow(),
+            "timestamp" : datetime.utcnow(),
             "block_num" : 13096024,
             "trx_id" : "0000000000000000000000000000000000000000"
         }
@@ -274,7 +315,7 @@ class ParseBlockchainTests(BaseTests):
             "request_id" : 1498034516,
             "memo" : "",
             "type" : "fill_transfer_from_savings",
-            "timestamp" : datetime.datetime.utcnow(),
+            "timestamp" : datetime.utcnow(),
             "block_num" : 13096336,
             "trx_id" : "0000000000000000000000000000000000000000"
         }
@@ -301,7 +342,7 @@ class ParseBlockchainTests(BaseTests):
             "request_id" : 1498034516,
             "memo" : "",
             "type" : "fill_transfer_from_savings",
-            "timestamp" : datetime.datetime.utcnow(),
+            "timestamp" : datetime.utcnow(),
             "block_num" : 13096336,
             "trx_id" : "0000000000000000000000000000000000000000"
         }
@@ -323,7 +364,7 @@ class ParseBlockchainTests(BaseTests):
             "withdrawn" : "827.908252 VESTS",
             "deposited" : "0.400 STEEM",
             "type" : "fill_vesting_withdraw",
-            "timestamp" : datetime.datetime.utcnow(),
+            "timestamp" : datetime.utcnow(),
             "block_num" : 13095963,
             "trx_id" : "0000000000000000000000000000000000000000"
         }
@@ -350,7 +391,7 @@ class ParseBlockchainTests(BaseTests):
             "withdrawn" : "827.908252 VESTS",
             "deposited" : "0.400 STEEM",
             "type" : "fill_vesting_withdraw",
-            "timestamp" : datetime.datetime.utcnow(),
+            "timestamp" : datetime.utcnow(),
             "block_num" : 13095963,
             "trx_id" : "0000000000000000000000000000000000000000"
         }
@@ -370,7 +411,7 @@ class ParseBlockchainTests(BaseTests):
             "auto_vest" : False,
             "to_account" : "user2",
             "trx_id" : "13441f93a1bb7f41ebfc95f1d280e44fdacc76f6",
-            "timestamp" : datetime.datetime.utcnow(),
+            "timestamp" : datetime.utcnow(),
             "from_account" : "user1",
             "block_num" : 13170400,
             "type" : "set_withdraw_vesting_route",
@@ -396,7 +437,7 @@ class ParseBlockchainTests(BaseTests):
             "auto_vest" : False,
             "to_account" : "user2",
             "trx_id" : "13441f93a1bb7f41ebfc95f1d280e44fdacc76f6",
-            "timestamp" : datetime.datetime.utcnow(),
+            "timestamp" : datetime.utcnow(),
             "from_account" : "user1",
             "block_num" : 13170400,
             "type" : "set_withdraw_vesting_route",
@@ -418,7 +459,7 @@ class ParseBlockchainTests(BaseTests):
             "block_num" : 12879142,
             "trx_id" : "7c44a7e1cb9e09643db901ec474ba8a74971f4de",
             "type" : "change_recovery_account",
-            "timestamp" : datetime.datetime.utcnow(),
+            "timestamp" : datetime.utcnow(),
             "new_recovery_account" : "kental",
             "account_to_recover" : "krishtopa",
             "extensions" : [ ]
@@ -442,7 +483,7 @@ class ParseBlockchainTests(BaseTests):
             "block_num" : 12879142,
             "trx_id" : "7c44a7e1cb9e09643db901ec474ba8a74971f4de",
             "type" : "change_recovery_account",
-            "timestamp" : datetime.datetime.utcnow(),
+            "timestamp" : datetime.utcnow(),
             "new_recovery_account" : "kental",
             "account_to_recover" : "krishtopa",
             "extensions" : [ ]
@@ -476,7 +517,7 @@ class ParseBlockchainTests(BaseTests):
             },
             "extensions" : [ ],
             "recovery_account" : "steem",
-            "timestamp" : datetime.datetime.utcnow()
+            "timestamp" : datetime.utcnow()
         }
         parse_blockchain(op)
 
@@ -510,12 +551,63 @@ class ParseBlockchainTests(BaseTests):
             },
             "extensions" : [ ],
             "recovery_account" : "steem",
-            "timestamp" : datetime.datetime.utcnow()
+            "timestamp" : datetime.utcnow()
         }
         parse_blockchain(op)
 
         self.assertEqual(mock_mail.call_count, 0)
         self.assertEqual(mock_telegram.call_count, 0)
+
+    @patch('src.blockchain_parser.send_mail')
+    def test_send_notification_to_confirmed_settings_only(self, mock_mail):
+        self.add_settings('user1', 'a@a.com', account_update=True, confirmed=True, 
+                          created_at=datetime.utcnow() - timedelta(days=3))
+        self.add_settings('user1', 'b@b.com', account_update=True, confirmed=True, 
+                          created_at=datetime.utcnow() - timedelta(days=2))
+        self.add_settings('user1', 'c@c.com', account_update=True, confirmed=False, 
+                          created_at=datetime.utcnow() - timedelta(days=1))
+
+        op = {
+            "_id" : "aa742915485383ed29c6d58ca4b36b68cc56e716",
+            "type" : "account_update",
+            "timestamp" : datetime.utcnow(),
+            "account" : "user1",
+            "block_num" : 13277829,
+            "json_metadata" : "{\"profile\":{\"name\":\"PaulN\"}}",
+            "memo_key" : "STM5HxZ49aAbAN975PSHZHCRJaFqfUSgxFJNKHQMw9vWHafJoeS6Z",
+            "trx_id" : "63c6fb2abeca96e3e9465cbfe19ec17e92e3fb19"
+        }
+        parse_blockchain(op)
+
+        self.assertEqual(mock_mail.call_count, 1)
+        mock_mail.assert_called_once_with(
+            'b@b.com', 
+            'New Steem Event', 
+            'Received event: account_update (user1)',
+        )
+
+
+class FindUserSettingsTests(BaseTests):
+    today = datetime.utcnow()
+    yesterday = datetime.utcnow() - timedelta(days=1)
+    twodaysago = datetime.utcnow() - timedelta(days=2)
+
+    def test_get_the_latest_confirmed_settings(self):
+        id_1 = self.add_settings('a', 'a@a.com', confirmed=True, created_at=self.twodaysago)
+        id_2 = self.add_settings('a', 'b@b.com', confirmed=True, created_at=self.yesterday)
+        id_3 = self.add_settings('a', 'c@c.com', confirmed=False, created_at=self.today)
+
+        settings = find_user_settings('a')
+
+        self.assertEqual(settings.get('_id'), id_2)
+        self.assertEqual(settings.get('email'), 'b@b.com')
+
+    def test_no_confirmed_settings(self):
+        self.add_settings('a', 'a@a.com', confirmed=False, created_at=self.twodaysago)
+        self.add_settings('a', 'b@b.com', confirmed=False, created_at=self.yesterday)
+        self.add_settings('a', 'c@c.com', confirmed=False, created_at=self.today)
+
+        self.assertEqual(find_user_settings('a'), dict())
 
 
 class SendMailTests(BaseTests):

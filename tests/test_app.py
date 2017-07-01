@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from werkzeug.datastructures import MultiDict
 from tests.base import BaseTests
 from src.app import NotificationSettingsForm
@@ -73,7 +74,13 @@ class SettingsTests(BaseTests):
         self.assertEqual(len(form.errors), 2)
 
     def test_update_with_valid_data(self):
-        self.add_settings('user1', email='user1@example.com', transfer=False)
+        self.add_settings(
+            'user1', 
+            email='user1@example.com', 
+            transfer=False, 
+            confirmed=True, 
+            created_at=datetime.utcnow() - timedelta(days=1),
+        )
         numrows = self.db.settings.count()
 
         response = self.client.post('/user1', data={
@@ -82,8 +89,13 @@ class SettingsTests(BaseTests):
             'transfer': True,
         })
 
-        self.assertEqual(self.db.settings.count(), numrows)
-        settings = self.db.settings.find_one({'username': 'user1'})
+        self.assertEqual(self.db.settings.count(), numrows+1)
+        try:
+            rows = self.db.settings.find({'username': 'user1'}).sort('created_at', -1)
+            settings = rows[0]
+        except Exception as e:
+            self.fail('Should not raise exception here.')
         self.assertEqual(settings['email'], 'user1@example.com')
         self.assertEqual(settings['telegram_channel_id'], '@samplechannel')
         self.assertEqual(settings['transfer'], True)
+        self.assertEqual(settings['confirmed'], False)
