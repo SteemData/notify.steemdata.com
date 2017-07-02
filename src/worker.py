@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-from contextlib import suppress
-import sys
+import logging
 import os
+import sys
+from contextlib import suppress
+
 import requests
 from pymongo import MongoClient
 from steem.blockchain import Blockchain
 
+log = logging.getLogger(__name__)
 
 mongo_uri = os.getenv('MONGO_URI', 'mongodb://localhost:27017/steem_notifier')
 telegram_token = os.getenv('TELEGRAM_TOKEN')
@@ -20,7 +23,7 @@ db = client[mongo_uri.split('/')[-1]]
 
 
 def run_blockchain_worker():
-    print('Starting the Steem event listener.')
+    log.info('Starting the Steem event listener.')
     b = Blockchain()
     types = [
         'account_update',
@@ -35,19 +38,18 @@ def run_blockchain_worker():
         'fill_transfer_from_savings',
         'fill_vesting_withdraw',
     ]
-    for op in b.stream():
+    for op in b.stream(filter_by=types, start_block=??):
         processed = db.processed_blockchains.find({'_id': op['_id']}).count()
-        if op['type'] in types and not processed:
-            parse_blockchain(op)
-            db.processed_blockchains.insert_one(op)
+        if not processed:
+            if parse_blockchain(op):
+                db.processed_blockchains.insert_one(op)
 
 
 def run_confirmation_worker():
-    print('Starting the confirmation worker.')
+    log.info('Starting the confirmation worker.')
     b = Blockchain()
-    for op in b.stream():
-        if op['type'] == 'transfer':
-            confirm_user_settings(op)
+    for transfer in b.stream(filter_by='transfer'):
+        confirm_user_settings(transfer)
 
 
 def parse_blockchain(op):
@@ -80,7 +82,7 @@ def parse_blockchain(op):
                       "Current owner: %s\n" % (op['current_owner']) + \
                       "Current pays: %s\n" % (op['current_pays']) + \
                       "Open owner: %s\n" % (op['open_owner']) + \
-                      "Open pays: %s" % (op['open_pays']) 
+                      "Open pays: %s" % (op['open_pays'])
 
     elif op['type'] == 'fill_convert_request':
         settings = find_user_settings(op['owner'])
@@ -137,17 +139,11 @@ def parse_blockchain(op):
 
 
 def confirm_user_settings(op):
-    try:
-        to = op['to']
-        asset = op['amount']['asset']
-        amount = op['amount']['amount']
-    except Exception:
+    if op['to'] != steem_wallet:
         return
-    if asset != 'STEEM' or amount != 0.001 or to != steem_wallet:
-        return
-    print('Received confirmation from: %s.' % op['from'])
+    log.info('Received confirmation from: %s.' % op['from'])
     db.settings.update_one(
-        {'_id': op['memo'], 'username': op['from']}, 
+        {'_id': op['memo'], 'username': op['from']},
         {'$set': {'confirmed': True}}
     )
     settings = db.settings.find_one({'_id': op['memo']})
@@ -180,7 +176,7 @@ def find_user_settings(username):
 
 
 def send_mail(to, subject, message):
-    url = 'https://api.mailgun.net/v3/%s/messages' % mailgun_domain_name 
+    url = 'https://api.mailgun.net/v3/%s/messages' % mailgun_domain_name
     auth = {'api': mailgun_api_key}
     data = {
         'from': 'noreply@%s' % mailgun_domain_name,
@@ -190,9 +186,9 @@ def send_mail(to, subject, message):
     }
     try:
         requests.post(url, auth=auth, data=data)
-        print('Sent mail to: %s.' % to)
+        log.info('Sent mail to: %s.' % to)
     except Exception:
-        print('Failed sending email to: %s.' % to)
+        log.error('Failed sending email to: %s.' % to)
 
 
 def send_telegram(channel_id, message):
@@ -200,15 +196,15 @@ def send_telegram(channel_id, message):
     try:
         data = {'chat_id': channel_id, 'text': message}
         r = requests.post(url, data=data)
-        print('Sent notification to: %s.' % channel_id)
+        log.info('Sent notification to: %s.' % channel_id)
     except Exception:
-        print('Failed sending telegram message to: %s.' % channel_id)
+        log.error('Failed sending telegram message to: %s.' % channel_id)
 
 
 if __name__ == "__main__":
     with suppress(KeyboardInterrupt):
         if len(sys.argv) != 2:
-            print('Usage: python worker.py <blockchain|confirmation>')
+            log.info('Usage: python worker.py <blockchain|confirmation>')
             sys.exit()
         if sys.argv[1] == 'blockchain':
             run_blockchain_worker()
