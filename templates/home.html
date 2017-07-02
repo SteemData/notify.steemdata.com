@@ -1,8 +1,76 @@
-{% extends 'base.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SteemData Notify</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='fav.ico') }}">
 
-{% block content %}
-  <div class="landing-logo">
-    <img src="{{ url_for('static', filename='img/steem-logo.jpg') }}">
-    <h1 class="ui center aligned header">Steem Notifier App</h1>
-  </div>
-{% endblock %}
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.css">
+</head>
+<body>
+
+
+<div class="ui container">
+
+    <div class="ui one column stackable center aligned page grid">
+        <div class="column twelve wide">
+            <br>
+            <br>
+            <img src="http://i.imgur.com/XtlYBki.jpg" alt="">
+            <br>
+            <br>
+            <div id='search-box' class="ui action input massive">
+                <input type="text" placeholder="@username">
+                <button class="ui icon button massive">
+                    <i class="search icon"></i>
+                </button>
+            </div>
+
+            <br>
+            <br>
+            <br>
+
+
+        </div>
+    </div>
+
+</div>
+<br>
+<br>
+<br>
+
+
+<script src="https://code.jquery.com/jquery-1.12.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.js"></script>
+<script type="application/javascript">
+    $(function () {
+        // focus search on page load
+        $("#search-box input").focus();
+    });
+</script>
+
+<script type="application/javascript">
+    $(function () {
+        var performSearch = function () {
+            var query = $("#search-box input").val();
+            if (query.length > 0) {
+                $("#search-box").addClass('disabled');
+                window.location = "/" + query.replace('@', '');
+            }
+        };
+        $("#search-box .button").click(function () {
+            performSearch()
+        });
+        $("#search-box input").keypress(function (e) {
+            if (e.which == 13) {
+                performSearch();
+                return false;
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
