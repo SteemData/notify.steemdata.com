@@ -40,12 +40,18 @@ def run_blockchain_worker():
         'fill_transfer_from_savings',
         'fill_vesting_withdraw',
     ]
-    start_block = None
+    try:
+        block = db.last_processed_block.find_one()
+        start_block = int(block['block_num']) - 1
+    except Exception:
+        start_block = None
     for op in b.stream(filter_by=types, start_block=start_block):
         processed = db.processed_blockchains.find({'_id': op['_id']}).count()
         if not processed:
             if parse_blockchain(op):
                 db.processed_blockchains.insert_one(op)
+                db.last_processed_block.delete_many({})
+                db.last_processed_block.insert_one(op)
 
 
 def run_confirmation_worker():
