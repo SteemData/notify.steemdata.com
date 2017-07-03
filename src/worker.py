@@ -2,6 +2,7 @@
 # encoding: utf-8
 
 import logging
+import time
 import os
 import sys
 from datetime import datetime
@@ -56,6 +57,20 @@ def run_confirmation_worker():
 
 def run_notifier_worker():
     log.info('Starting the notifier worker.')
+    while True:
+        for n in db.notifications.find({'email_sent': False}):
+            if send_mail(n['email'], 'New Steem Event', n['message']):
+                db.notifications.update_one(
+                    {'_id': n['_id']},
+                    {'$set': {'email_sent': True}},
+                )
+        for n in db.notifications.find({'telegram_sent': False}):
+            if send_telegram(n['telegram_channel_id'], n['message']):
+                db.notifications.update_one(
+                    {'_id': n['_id']},
+                    {'$set': {'telegram_sent': True}},
+                )
+        time.sleep(5)
 
 
 def parse_blockchain(op):
@@ -198,6 +213,7 @@ def send_mail(to, subject, message):
     try:
         requests.post(url, auth=auth, data=data)
         log.info('Sent mail to: %s.' % to)
+        return True
     except Exception:
         log.error('Failed sending email to: %s.' % to)
 
@@ -208,6 +224,7 @@ def send_telegram(channel_id, message):
         data = {'chat_id': channel_id, 'text': message}
         r = requests.post(url, data=data)
         log.info('Sent notification to: %s.' % channel_id)
+        return True
     except Exception:
         log.error('Failed sending telegram message to: %s.' % channel_id)
 

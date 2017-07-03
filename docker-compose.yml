@@ -11,8 +11,8 @@ services:
       - "5000:5000"
     depends_on:
       - mongodb
-    environment:
-      - MONGO_URI=mongodb://mongodb:27017/steem_notifier
+    env_file:
+      - .env
     logging:
       driver: 'json-file'
       options:
@@ -25,11 +25,8 @@ services:
     tty: true
     depends_on:
       - mongodb
-    environment:
-      - MONGO_URI=mongodb://mongodb:27017/steem_notifier
-      - TELEGRAM_TOKEN=380184752:AAEObQIeG0ve_IVanUnR-p8GAdW9PRwVL_c
-      - MAILGUN_DOMAIN_NAME=example.com
-      - MAILGUN_API_KEY=abcdef
+    env_file:
+      - .env
     logging:
       driver: 'json-file'
       options:
@@ -42,18 +39,28 @@ services:
     tty: true
     depends_on:
       - mongodb
-    environment:
-      - MONGO_URI=mongodb://mongodb:27017/steem_notifier
-      - TELEGRAM_TOKEN=380184752:AAEObQIeG0ve_IVanUnR-p8GAdW9PRwVL_c
-      - MAILGUN_DOMAIN_NAME=example.com
-      - MAILGUN_API_KEY=abcdef
-      - STEEM_WALLET=furion
+    env_file:
+      - .env
     logging:
       driver: 'json-file'
       options:
         max-size: '10m'
         max-file: '2'
     command: python src/worker.py confirmation
+
+  notification_worker:
+    build: .
+    tty: true
+    depends_on:
+      - mongodb
+    env_file:
+      - .env
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '2'
+    command: python src/worker.py notifier
 
   mongodb:
     image: mongo:3.5
