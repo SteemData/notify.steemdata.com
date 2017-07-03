@@ -4,7 +4,7 @@ from unittest.mock import patch
 from tests.base import BaseTests
 from src.worker import (
     parse_blockchain, find_user_settings, confirm_user_settings, 
-    send_mail, send_telegram
+    send_mail, send_telegram, log
 )
 
 
@@ -637,62 +637,6 @@ class ConfirmUserSettingsTests(BaseTests):
         mock_mail.assert_called_once_with('b@b.com', 'Update confirmed', message)
         mock_telegram.assert_called_once_with('@bbb', message)
 
-    @patch('src.worker.send_telegram')
-    @patch('src.worker.send_mail')
-    def test_invalid_amount(self, mock_mail, mock_telegram):
-        op = {
-            "_id" : "1f6e047c59bea977a2c513716954538e0b04a8e9",
-            "from" : "user1",
-            "memo" : self.id2,
-            "timestamp" : datetime.utcnow(),
-            "type" : "transfer",
-            "trx_id" : "e5a9f188ffc16f8cda143a28f13520a46595a432",
-            "block_num" : 55655,
-            "amount" : {
-                "asset" : "STEEM",
-                "amount" : 0.0000001
-            },
-            "to" : self.steem_wallet, 
-        }
-        confirm_user_settings(op)
-
-        item1 = self.db.settings.find_one({'_id': self.id1})
-        item2 = self.db.settings.find_one({'_id': self.id2})
-        item3 = self.db.settings.find_one({'_id': self.id3})
-        self.assertEqual(item1['confirmed'], False)
-        self.assertEqual(item2['confirmed'], False)
-        self.assertEqual(item3['confirmed'], False)
-        self.assertEqual(mock_mail.call_count, 0)
-        self.assertEqual(mock_telegram.call_count, 0)
-
-    @patch('src.worker.send_telegram')
-    @patch('src.worker.send_mail')
-    def test_invalid_asset(self, mock_mail, mock_telegram):
-        op = {
-            "_id" : "1f6e047c59bea977a2c513716954538e0b04a8e9",
-            "from" : "user1",
-            "memo" : self.id2,
-            "timestamp" : datetime.utcnow(),
-            "type" : "transfer",
-            "trx_id" : "e5a9f188ffc16f8cda143a28f13520a46595a432",
-            "block_num" : 55655,
-            "amount" : {
-                "asset" : "BTC",
-                "amount" : 0.001
-            },
-            "to" : self.steem_wallet, 
-        }
-        confirm_user_settings(op)
-
-        item1 = self.db.settings.find_one({'_id': self.id1})
-        item2 = self.db.settings.find_one({'_id': self.id2})
-        item3 = self.db.settings.find_one({'_id': self.id3})
-        self.assertEqual(item1['confirmed'], False)
-        self.assertEqual(item2['confirmed'], False)
-        self.assertEqual(item3['confirmed'], False)
-        self.assertEqual(mock_mail.call_count, 0)
-        self.assertEqual(mock_telegram.call_count, 0)
-
 
 class FindUserSettingsTests(BaseTests):
     today = datetime.utcnow()
@@ -721,7 +665,8 @@ class SendMailTests(BaseTests):
 
     @patch('requests.post')
     def test_success_email(self, mock_r):
-        send_mail('bob@example.com', 'sample email', 'sample message')
+        with self.assertLogs(log, level='INFO') as cm:
+            send_mail('bob@example.com', 'sample email', 'sample message')
 
         mock_r.assert_called_with(
             'https://api.mailgun.net/v3/%s/messages' % self.mailgun_domain_name,
@@ -733,30 +678,30 @@ class SendMailTests(BaseTests):
                 'text': 'sample message',
             },
         )
-        if hasattr(sys.stdout, 'getvalue'):
-            self.assertEqual(
-                sys.stdout.getvalue(), 
-                'Sent mail to: bob@example.com.\n',
-            )
+        self.assertEqual(
+            cm.output,
+            ['INFO:src.worker:Sent mail to: bob@example.com.'],
+        )
 
     @patch('requests.post')
     def test_failed_email(self, mock_r):
         mock_r.side_effect = Exception('Something went wrong.')
 
-        send_mail('user@example.com', 'xxx', 'yyy')
+        with self.assertLogs(log, level='INFO') as cm:
+            send_mail('user@example.com', 'xxx', 'yyy')
 
-        if hasattr(sys.stdout, 'getvalue'):
-            self.assertEqual(
-                sys.stdout.getvalue(), 
-                'Failed sending email to: user@example.com.\n',
-            )
+        self.assertEqual(
+            cm.output,
+            ['ERROR:src.worker:Failed sending email to: user@example.com.'],
+        )
 
 
 class SendTelegramTests(BaseTests):
 
     @patch('requests.post')
     def test_success(self, mock_r):
-        send_telegram('@samplechannel', 'sample message')
+        with self.assertLogs(log, level='INFO') as cm:
+            send_telegram('@samplechannel', 'sample message')
 
         mock_r.assert_called_with(
             'https://api.telegram.org/bot%s/sendMessage' % self.telegram_token,
@@ -765,20 +710,20 @@ class SendTelegramTests(BaseTests):
                 'text': 'sample message',
             }
         )
-        if hasattr(sys.stdout, 'getvalue'):
-            self.assertEqual(
-                sys.stdout.getvalue(), 
-                'Sent notification to: @samplechannel.\n',
-            )
+        self.assertEqual(
+            cm.output, 
+            ['INFO:src.worker:Sent notification to: @samplechannel.'],
+        )
+
 
     @patch('requests.post')
     def test_failed(self, mock_r):
         mock_r.side_effect = Exception('something went wrong')
 
-        send_telegram('@xxx', 'yyy')
+        with self.assertLogs(log, level='INFO') as cm:
+            send_telegram('@xxx', 'yyy')
 
-        if hasattr(sys.stdout, 'getvalue'):
-            self.assertEqual(
-                sys.stdout.getvalue(), 
-                'Failed sending telegram message to: @xxx.\n',
-            )
+        self.assertEqual(
+            cm.output, 
+            ['ERROR:src.worker:Failed sending telegram message to: @xxx.'],
+        )

@@ -38,7 +38,8 @@ def run_blockchain_worker():
         'fill_transfer_from_savings',
         'fill_vesting_withdraw',
     ]
-    for op in b.stream(filter_by=types, start_block=??):
+    start_block = None
+    for op in b.stream(filter_by=types, start_block=start_block):
         processed = db.processed_blockchains.find({'_id': op['_id']}).count()
         if not processed:
             if parse_blockchain(op):
