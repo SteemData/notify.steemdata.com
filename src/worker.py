@@ -4,6 +4,7 @@
 import logging
 import os
 import sys
+from datetime import datetime
 from contextlib import suppress
 
 import requests
@@ -51,6 +52,10 @@ def run_confirmation_worker():
     b = Blockchain()
     for transfer in b.stream(filter_by='transfer'):
         confirm_user_settings(transfer)
+
+
+def run_notifier_worker():
+    log.info('Starting the notifier worker.')
 
 
 def parse_blockchain(op):
@@ -133,10 +138,15 @@ def parse_blockchain(op):
                       'Recovery account: %s' % op['recovery_account']
 
     if settings and message:
-        if settings['email']:
-            send_mail(settings['email'], 'New Steem Event', message)
-        if settings['telegram_channel_id']:
-            send_telegram(settings['telegram_channel_id'], message)
+        db.notifications.insert_one({
+            'username': settings['username'],
+            'email': settings['email'],
+            'telegram_channel_id': settings['telegram_channel_id'],
+            'message': message,
+            'email_sent': False,
+            'telegram_sent': False,
+            'created_at': datetime.utcnow(),
+        })
 
 
 def confirm_user_settings(op):
@@ -205,9 +215,11 @@ def send_telegram(channel_id, message):
 if __name__ == "__main__":
     with suppress(KeyboardInterrupt):
         if len(sys.argv) != 2:
-            log.info('Usage: python worker.py <blockchain|confirmation>')
+            log.info('Usage: python worker.py <blockchain|confirmation|notifier>')
             sys.exit()
         if sys.argv[1] == 'blockchain':
             run_blockchain_worker()
         elif sys.argv[1] == 'confirmation':
             run_confirmation_worker()
+        elif sys.argv[1] == 'notifier':
+            run_notifier_worker()

@@ -32,6 +32,7 @@ class BaseTests(TestCase):
         db.settings.delete_many({})
         db.blockchains.delete_many({})
         db.processed_blockchains.delete_many({})
+        db.notifications.delete_many({})
 
     def add_settings(self, username, email=None, telegram_channel_id=None,
                      account_update=False, change_recovery_account=False,
