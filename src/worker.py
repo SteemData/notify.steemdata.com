@@ -10,15 +10,17 @@ from contextlib import suppress
 
 import requests
 from pymongo import MongoClient
+from bson.objectid import ObjectId
 from steem.blockchain import Blockchain
 
+logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 log = logging.getLogger(__name__)
 
 mongo_uri = os.getenv('MONGO_URI', 'mongodb://localhost:27017/steem_notifier')
 telegram_token = os.getenv('TELEGRAM_TOKEN')
 mailgun_domain_name = os.getenv('MAILGUN_DOMAIN_NAME')
 mailgun_api_key = os.getenv('MAILGUN_API_KEY')
-steem_wallet = os.getenv('STEEM_WALLET', 'furion')
+steem_wallet = os.getenv('STEEM_WALLET', 'null')
 
 client = MongoClient(mongo_uri)
 db = client[mongo_uri.split('/')[-1]]
@@ -46,7 +48,7 @@ def run_blockchain_worker():
     except Exception:
         start_block = None
     for op in b.stream(filter_by=types, start_block=start_block):
-        processed = db.processed_blockchains.find({'_id': op['_id']}).count()
+        processed = db.processed_blockchains.find({'_id': ObjectId(op['_id'])}).count()
         if not processed:
             if parse_blockchain(op):
                 db.processed_blockchains.insert_one(op)
@@ -94,6 +96,7 @@ def parse_blockchain(op):
             message = 'Received event: %s\nEvent detail: %s -> %s (%s)' % (
                 op['type'], op['from'], op['to'], op['amount'],
             )
+            log.info(message)
 
     elif op['type'] == 'withdraw_vesting':
         settings = find_user_settings(op['account'])
@@ -169,34 +172,38 @@ def parse_blockchain(op):
             'created_at': datetime.utcnow(),
         })
 
+    return True
+
 
 def confirm_user_settings(op):
-    if op['to'] != steem_wallet:
+    if op['to'] != steem_wallet or len(op['memo'].strip()) != 24:
         return
-    log.info('Received confirmation from: %s.' % op['from'])
-    db.settings.update_one(
-        {'_id': op['memo'], 'username': op['from']},
-        {'$set': {'confirmed': True}}
-    )
-    settings = db.settings.find_one({'_id': op['memo']})
-    message = 'You have made the following changes:\n' + \
-              'Email: %s\n' % (str(settings['email'] or '-')) + \
-              'Telegram: %s\n' % (str(settings['telegram_channel_id'] or '-')) + \
-              'Notify account_update: %s\n' % str(settings['account_update']) + \
-              'Notify change_recovery_account: %s\n' % str(settings['change_recovery_account']) + \
-              'Notify request_account_recovery: %s\n' % str(settings['request_account_recovery']) + \
-              'Notify transfer: %s\n' % str(settings['transfer']) + \
-              'Notify transfer_from_savings: %s\n' % str(settings['transfer_from_savings']) + \
-              'Notify set_withdraw_vesting_route: %s\n' % str(settings['set_withdraw_vesting_route']) + \
-              'Notify withdraw_vesting: %s\n' % str(settings['withdraw_vesting']) + \
-              'Notify fill_order: %s\n' % str(settings['fill_order']) + \
-              'Notify fill_convert_request: %s\n' % str(settings['fill_convert_request']) + \
-              'Notify fill_transfer_from_savings: %s\n' % str(settings['fill_transfer_from_savings']) + \
-              'Notify fill_vesting_withdraw: %s\n' % str(settings['fill_vesting_withdraw'])
-    if settings['email']:
-        send_mail(settings['email'], 'Update confirmed', message)
-    if settings['telegram_channel_id']:
-        send_telegram(settings['telegram_channel_id'], message)
+    _id = ObjectId(op['memo'].strip())
+    settings = db.settings.find_one({'_id': _id})
+    if settings:
+        db.settings.update_one(
+            {'_id': _id, 'username': op['from']},
+            {'$set': {'confirmed': True}}
+        )
+        message = 'You have made the following changes:\n' + \
+                  'Email: %s\n' % (str(settings['email'] or '-')) + \
+                  'Telegram: %s\n' % (str(settings['telegram_channel_id'] or '-')) + \
+                  'Notify account_update: %s\n' % str(settings['account_update']) + \
+                  'Notify change_recovery_account: %s\n' % str(settings['change_recovery_account']) + \
+                  'Notify request_account_recovery: %s\n' % str(settings['request_account_recovery']) + \
+                  'Notify transfer: %s\n' % str(settings['transfer']) + \
+                  'Notify transfer_from_savings: %s\n' % str(settings['transfer_from_savings']) + \
+                  'Notify set_withdraw_vesting_route: %s\n' % str(settings['set_withdraw_vesting_route']) + \
+                  'Notify withdraw_vesting: %s\n' % str(settings['withdraw_vesting']) + \
+                  'Notify fill_order: %s\n' % str(settings['fill_order']) + \
+                  'Notify fill_convert_request: %s\n' % str(settings['fill_convert_request']) + \
+                  'Notify fill_transfer_from_savings: %s\n' % str(settings['fill_transfer_from_savings']) + \
+                  'Notify fill_vesting_withdraw: %s\n' % str(settings['fill_vesting_withdraw'])
+        log.info('Confirmed the settings for user %s.' % op['from'])
+        if settings['email']:
+            send_mail(settings['email'], 'Update confirmed', message)
+        if settings['telegram_channel_id']:
+            send_telegram(settings['telegram_channel_id'], message)
 
 
 def find_user_settings(username):
@@ -209,7 +216,7 @@ def find_user_settings(username):
 
 def send_mail(to, subject, message):
     url = 'https://api.mailgun.net/v3/%s/messages' % mailgun_domain_name
-    auth = {'api': mailgun_api_key}
+    auth = ('api', mailgun_api_key)
     data = {
         'from': 'noreply@%s' % mailgun_domain_name,
         'to': [to],
@@ -220,8 +227,8 @@ def send_mail(to, subject, message):
         requests.post(url, auth=auth, data=data)
         log.info('Sent mail to: %s.' % to)
         return True
-    except Exception:
-        log.error('Failed sending email to: %s.' % to)
+    except Exception as e:
+        log.error('Failed sending email to %s: %s' % (to, str(e)))
 
 
 def send_telegram(channel_id, message):
@@ -231,8 +238,8 @@ def send_telegram(channel_id, message):
         r = requests.post(url, data=data)
         log.info('Sent notification to: %s.' % channel_id)
         return True
-    except Exception:
-        log.error('Failed sending telegram message to: %s.' % channel_id)
+    except Exception as e:
+        log.error('Failed sending telegram message to %s: %s' % (channel_id, str(e)))
 
 
 if __name__ == "__main__":
