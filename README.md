@@ -25,7 +25,21 @@ Make sure you have a MongoDB instance running on your dev machine.
         pip install -r requirements.txt
 
 
-3. Open `http://localhost:5000` using your browser.
+3. Copy `.env.example` to `.env` and fill in the values:
+
+        MONGO_URI=
+        TELEGRAM_TOKEN=
+        MAILGUN_DOMAIN_NAME=
+        MAILGUN_API_KEY=
+        STEEM_WALLET=
+
+
+4. Run the app:
+
+        python src/app.py
+
+
+5. Open `http://localhost:5000` using your browser.
 
 
 Run on production machine
@@ -33,11 +47,13 @@ Run on production machine
 
 Make sure you have [Docker](https://www.docker.com) and [Docker Compose](https://docs.docker.com/compose/) installed on the server.
 
-1. Build the containers:
+1. Copy `.env.example` to `.env` and fill in the values.
+
+2. Build the containers:
 
         docker-compose build
 
-2. Run the containers:
+3. Run the containers:
 
         docker-compose up -d
 
