@@ -48,6 +48,7 @@ celerybeat-schedule.*
 ################
 .idea/
 .vendors/
+.env
 env
 venv
 notes.txt
