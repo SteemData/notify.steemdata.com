@@ -604,7 +604,7 @@ class ConfirmUserSettingsTests(BaseTests):
         op = {
             "_id" : "1f6e047c59bea977a2c513716954538e0b04a8e9",
             "from" : "user1",
-            "memo" : self.id2,
+            "memo" : str(self.id2),
             "timestamp" : datetime.utcnow(),
             "type" : "transfer",
             "trx_id" : "e5a9f188ffc16f8cda143a28f13520a46595a432",
@@ -674,7 +674,7 @@ class SendMailTests(BaseTests):
 
         mock_r.assert_called_with(
             'https://api.mailgun.net/v3/%s/messages' % self.mailgun_domain_name,
-            auth={'api': self.mailgun_api_key},
+            auth=('api', self.mailgun_api_key),
             data={
                 'from': 'noreply@%s' % self.mailgun_domain_name, 
                 'to': ['bob@example.com'], 
@@ -689,14 +689,14 @@ class SendMailTests(BaseTests):
 
     @patch('requests.post')
     def test_failed_email(self, mock_r):
-        mock_r.side_effect = Exception('Something went wrong.')
+        mock_r.side_effect = Exception('error')
 
         with self.assertLogs(log, level='INFO') as cm:
             send_mail('user@example.com', 'xxx', 'yyy')
 
         self.assertEqual(
             cm.output,
-            ['ERROR:src.worker:Failed sending email to: user@example.com.'],
+            ['ERROR:src.worker:Failed sending email to user@example.com: error'],
         )
 
 
@@ -722,12 +722,12 @@ class SendTelegramTests(BaseTests):
 
     @patch('requests.post')
     def test_failed(self, mock_r):
-        mock_r.side_effect = Exception('something went wrong')
+        mock_r.side_effect = Exception('error')
 
         with self.assertLogs(log, level='INFO') as cm:
             send_telegram('@xxx', 'yyy')
 
         self.assertEqual(
             cm.output, 
-            ['ERROR:src.worker:Failed sending telegram message to: @xxx.'],
+            ['ERROR:src.worker:Failed sending telegram message to @xxx: error'],
         )
