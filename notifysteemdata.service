@@ -1,0 +1,14 @@
+[Unit]
+Description=notify.steemdata.com
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/home/notify/notify.steemdata.com
+ExecStart=/usr/local/bin/docker-compose -f /home/notify/notify.steemdata.com/docker-compose.yml up -d
+ExecStop=/usr/local/bin/docker-compose -f /home/notify/notify.steemdata.com/docker-compose.yml down
+
+[Install]
+WantedBy=multi-user.target
