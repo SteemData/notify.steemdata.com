@@ -48,7 +48,7 @@ def run_blockchain_worker():
     except Exception:
         start_block = None
     for op in b.stream(filter_by=types, start_block=start_block):
-        processed = db.processed_blockchains.find({'_id': ObjectId(op['_id'])}).count()
+        processed = db.processed_blockchains.find({'_id': op['_id']}).count()
         if not processed:
             if parse_blockchain(op):
                 db.processed_blockchains.insert_one(op)
