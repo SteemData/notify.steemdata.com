@@ -11,10 +11,12 @@ from wtforms import (
     Form, StringField, BooleanField, validators, ValidationError,
 )
 
+
 app = Flask(__name__, template_folder='../templates', static_folder='../static')
 app.secret_key = '0123456789abcdef'
 app.config['MONGO_URI'] = os.getenv('MONGO_URI', 'mongodb://localhost:27017/steem_notifier')
 app.config['DEBUG'] = not os.getenv('PRODUCTION', False)
+app.config['STEEM_WALLET'] = os.getenv('STEEM_WALLET', 'null')
 mongo = PyMongo(app)
 
 
@@ -56,9 +58,7 @@ def settings(username):
         data['username'] = username
         data['confirmed'] = False
         data['created_at'] = datetime.utcnow()
-        new_id = mongo.db.settings.insert_one(data).inserted_id
-        flash('Confirm your update by sending BTC 0.001 with the following memo: ' + \
-              '<strong>%s</strong>' % new_id)
+        mongo.db.settings.insert_one(data)
         return redirect('/%s' % username)
     return render_template(
         'settings.html', 
