@@ -96,7 +96,6 @@ def parse_blockchain(op):
             message = 'Received event: %s\nEvent detail: %s -> %s (%s)' % (
                 op['type'], op['from'], op['to'], op['amount'],
             )
-            log.info(message)
 
     elif op['type'] == 'withdraw_vesting':
         settings = find_user_settings(op['account'])
