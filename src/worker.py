@@ -175,7 +175,7 @@ def parse_blockchain(op):
 
 
 def confirm_user_settings(op):
-    if op['to'] != steem_wallet or len(op['memo'].strip()) != 24:
+    if op['to'] != steem_wallet or len(op['memo'].strip()) != 40:
         return
     _id = ObjectId(op['memo'].strip())
     settings = db.settings.find_one({'_id': _id})
