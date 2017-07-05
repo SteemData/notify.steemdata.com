@@ -41,8 +41,7 @@ class NotificationSettingsForm(Form):
     fill_transfer_from_savings = BooleanField('Fill transfer from savings')
     fill_vesting_withdraw = BooleanField('Fill vesting withdraw')
 
-    @staticmethod
-    def validate_telegram_channel_id(field):
+    def validate_telegram_channel_id(self, field):
         if field.data and not re.match('^@[a-zA-Z0-9]+$', field.data):
             raise ValidationError('Wrong format for telegram channel ID.')
 
@@ -90,7 +89,7 @@ def settings(username):
 
 def hash_op(event: dict):
     """ This method generates a hash of blockchain operation. """
-    event_ = omit(event, ['_id', 'datetime_object'])
+    event_ = omit(event, ['_id', 'created_at'])
     data = json.dumps(event_, sort_keys=True)
     return hashlib.sha1(bytes(data, 'utf-8')).hexdigest()
 
