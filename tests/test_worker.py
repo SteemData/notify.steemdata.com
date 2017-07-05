@@ -1,3 +1,4 @@
+import logging
 import sys
 from datetime import datetime, timedelta
 from unittest.mock import patch
@@ -597,6 +598,11 @@ class ConfirmUserSettingsTests(BaseTests):
         self.id1 = self.add_settings('user1', 'a@a.com', '@aaa', confirmed=False)
         self.id2 = self.add_settings('user1', 'b@b.com', '@bbb', confirmed=False)
         self.id3 = self.add_settings('user1', 'c@c.com', '@ccc', confirmed=False)
+        logging.disable(logging.CRITICAL)
+
+    def tearDown(self):
+        super().tearDown()
+        logging.disable(logging.NOTSET)
 
     @patch('src.worker.send_telegram')
     @patch('src.worker.send_mail')

@@ -55,9 +55,12 @@ def settings(username):
         current_settings = dict()
     # Get last settings
     try:
-        rows = mongo.db.settings.find({'username': username}).sort('created_at', -1)
-        last_settings = rows[1]
-    except Exception:
+        f = {'username': username, 'confirmed': True}
+        rows = mongo.db.settings.find(f).sort('created_at', -1)
+        last_settings = rows[0]
+    except Exception as e:
+        last_settings = dict()
+    if last_settings.get('_id') == current_settings.get('_id'):
         last_settings = dict()
 
     form = NotificationSettingsForm(request.form, data=current_settings)

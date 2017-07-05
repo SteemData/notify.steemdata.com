@@ -43,6 +43,11 @@ class NotificationSettingsFormTests(BaseTests):
 
 
 class SettingsTests(BaseTests):
+    threedaysago = datetime.utcnow() - timedelta(days=3)
+    twodaysago = datetime.utcnow() - timedelta(days=2)
+    yesterday = datetime.utcnow() - timedelta(days=1)
+    today = datetime.utcnow()
+
     def test_render_the_template(self):
         response = self.client.get('/user1')
 
@@ -99,3 +104,26 @@ class SettingsTests(BaseTests):
         self.assertEqual(settings['telegram_channel_id'], '@samplechannel')
         self.assertEqual(settings['transfer'], True)
         self.assertEqual(settings['confirmed'], False)
+
+    def test_display_last_settings(self):
+        self.add_settings('user1', email='a@a.com', confirmed=True, created_at=self.threedaysago)
+        self.add_settings('user1', email='b@b.com', confirmed=True, created_at=self.twodaysago)
+
+        response = self.client.get('/user1')
+
+        last_settings = self.get_context_variable('last_settings')
+        self.assertEqual(last_settings, dict())
+
+        self.add_settings('user1', email='c@c.com', confirmed=False, created_at=self.yesterday)
+
+        response = self.client.get('/user1')
+
+        last_settings = self.get_context_variable('last_settings')
+        self.assertEqual(last_settings.get('email'), 'b@b.com')
+
+        self.add_settings('user1', email='d@d.com', confirmed=False, created_at=self.today)
+
+        response = self.client.get('/user1')
+
+        last_settings = self.get_context_variable('last_settings')
+        self.assertEqual(last_settings.get('email'), 'b@b.com')
