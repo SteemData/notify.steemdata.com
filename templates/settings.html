@@ -104,6 +104,55 @@
           </div>
         </div>
 
+        {% if settings.confirmed == False and last_settings %}
+          <div class="ui horizontal divider">
+            Previous settings
+          </div>
+          {% if last_settings.email %}
+            <div class="ui green label">
+              <i class="mail icon"></i> {{ last_settings.email }}
+            </div>
+          {% endif %}
+          {% if last_settings.telegram_channel_id %}
+            <div class="ui green label">
+              <i class="send icon"></i> {{ last_settings.telegram_channel_id }}
+            </div>
+          {% endif %}
+          <div class="ui {% if last_settings.account_update %}green{% endif %} label">
+            Account update <i class="{% if last_settings.account_update %}check{% else %}delete{% endif %} icon"></i>
+          </div>
+          <div class="ui {% if last_settings.change_recovery_account %}green{% endif %} label">
+            Change recovery account <i class="{% if last_settings.change_recovery_account %}check{% else %}delete{% endif %} icon"></i>
+          </div>
+          <div class="ui {% if last_settings.request_account_recovery %}green{% endif %} label">
+            Request account recovery <i class="{% if last_settings.request_account_recovery %}check{% else %}delete{% endif %} icon"></i>
+          </div>
+          <div class="ui {% if last_settings.transfer %}green{% endif %} label">
+            Transfer <i class="{% if last_settings.transfer %}check{% else %}delete{% endif %} icon"></i>
+          </div>
+          <div class="ui {% if last_settings.transfer_from_savings %}green{% endif %} label">
+            Transfer from savings <i class="{% if last_settings.transfer_from_savings %}check{% else %}delete{% endif %} icon"></i>
+          </div>
+          <div class="ui {% if last_settings.set_withdraw_vesting_route %}green{% endif %} label">
+            Set withdraw vesting route <i class="{% if last_settings.set_withdraw_vesting_route %}check{% else %}delete{% endif %} icon"></i>
+          </div>
+          <div class="ui {% if last_settings.withdraw_vesting %}green{% endif %} label">
+            Withdraw vesting <i class="{% if last_settings.withdraw_vesting %}check{% else %}delete{% endif %} icon"></i>
+          </div>
+          <div class="ui {% if last_settings.fill_order %}green{% endif %} label">
+            Fill order <i class="{% if last_settings.fill_order %}check{% else %}delete{% endif %} icon"></i>
+          </div>
+          <div class="ui {% if last_settings.fill_convert_request %}green{% endif %} label">
+            Fill convert request <i class="{% if last_settings.fill_convert_request %}check{% else %}delete{% endif %} icon"></i>
+          </div>
+          <div class="ui {% if last_settings.fill_transfer_from_savings %}green{% endif %} label">
+            Fill transfer from savings <i class="{% if last_settings.fill_transfer_from_savings %}check{% else %}delete{% endif %} icon"></i>
+          </div>
+          <div class="ui {% if last_settings.fill_vesting_withdraw %}green{% endif %} label">
+            Fill vesting withdraw<i class="{% if last_settings.fill_vesting_withdraw %}check{% else %}delete{% endif %} icon"></i>
+          </div>
+        {% endif %}
+
         <div class="ui divider"></div>
         <div class="ui error message"></div>
         <button class="ui primary fluid button">Save my settings</button>

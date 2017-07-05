@@ -47,12 +47,20 @@ class NotificationSettingsForm(Form):
 
 @app.route('/<username>', methods=['GET', 'POST'])
 def settings(username):
+    # Get current settings
     try:
         rows = mongo.db.settings.find({'username': username}).sort('created_at', -1)
-        initial = rows[0]
+        current_settings = rows[0]
     except Exception as e:
-        initial = dict()
-    form = NotificationSettingsForm(request.form, data=initial)
+        current_settings = dict()
+    # Get last settings
+    try:
+        rows = mongo.db.settings.find({'username': username}).sort('created_at', -1)
+        last_settings = rows[1]
+    except Exception:
+        last_settings = dict()
+
+    form = NotificationSettingsForm(request.form, data=current_settings)
     if request.method == 'POST' and form.validate():
         data = form.data
         data['username'] = username
@@ -60,11 +68,13 @@ def settings(username):
         data['created_at'] = datetime.utcnow()
         mongo.db.settings.insert_one(data)
         return redirect('/%s' % username)
+
     return render_template(
         'settings.html', 
         username=username, 
         form=form,
-        settings=initial,
+        settings=current_settings,
+        last_settings=last_settings,
     )
 
 

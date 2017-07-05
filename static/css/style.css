@@ -8,3 +8,7 @@ body {
 .landing-logo img {
   margin: 0 auto;
 }
+
+.ui.label {
+  margin-bottom: 15px;
+}
