@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 # encoding: utf-8
-
-import re
+import hashlib
+import json
 import os
+import re
 from datetime import datetime
 
-from flask import Flask, request, render_template, redirect, flash
+from flask import Flask, request, render_template, redirect
 from flask_pymongo import PyMongo
 from wtforms import (
     Form, StringField, BooleanField, validators, ValidationError,
 )
-
 
 app = Flask(__name__, template_folder='../templates', static_folder='../static')
 app.secret_key = '0123456789abcdef'
@@ -40,7 +40,8 @@ class NotificationSettingsForm(Form):
     fill_transfer_from_savings = BooleanField('Fill transfer from savings')
     fill_vesting_withdraw = BooleanField('Fill vesting withdraw')
 
-    def validate_telegram_channel_id(self, field):
+    @staticmethod
+    def validate_telegram_channel_id(field):
         if field.data and not re.match('^@[a-zA-Z0-9]+$', field.data):
             raise ValidationError('Wrong format for telegram channel ID.')
 
@@ -69,16 +70,27 @@ def settings(username):
         data['username'] = username
         data['confirmed'] = False
         data['created_at'] = datetime.utcnow()
+
+        # ensure provability/integrity of the change
+        # via assert(hash_op(drop('_id', data)) == data['_id'])
+        data['_id'] = hash_op(data)
+
         mongo.db.settings.insert_one(data)
         return redirect('/%s' % username)
 
     return render_template(
-        'settings.html', 
-        username=username, 
+        'settings.html',
+        username=username,
         form=form,
         settings=current_settings,
         last_settings=last_settings,
     )
+
+
+def hash_op(event: dict):
+    """ This method generates a hash of blockchain operation. """
+    data = json.dumps(event, sort_keys=True)
+    return hashlib.sha1(bytes(data, 'utf-8')).hexdigest()
 
 
 if __name__ == "__main__":
