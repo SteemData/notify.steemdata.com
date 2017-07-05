@@ -8,6 +8,7 @@ from datetime import datetime
 
 from flask import Flask, request, render_template, redirect
 from flask_pymongo import PyMongo
+from toolz import keyfilter
 from wtforms import (
     Form, StringField, BooleanField, validators, ValidationError,
 )
@@ -72,7 +73,7 @@ def settings(username):
         data['created_at'] = datetime.utcnow()
 
         # ensure provability/integrity of the change
-        # via assert(hash_op(drop('_id', data)) == data['_id'])
+        # via assert(hash_op(data) == data['_id'])
         data['_id'] = hash_op(data)
 
         mongo.db.settings.insert_one(data)
@@ -89,8 +90,13 @@ def settings(username):
 
 def hash_op(event: dict):
     """ This method generates a hash of blockchain operation. """
-    data = json.dumps(event, sort_keys=True)
+    event_ = omit(event, ['_id', 'datetime_object'])
+    data = json.dumps(event_, sort_keys=True)
     return hashlib.sha1(bytes(data, 'utf-8')).hexdigest()
+
+
+def omit(d, blacklist):
+    return keyfilter(lambda k: k not in blacklist, d)
 
 
 if __name__ == "__main__":
