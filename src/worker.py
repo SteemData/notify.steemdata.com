@@ -182,8 +182,10 @@ def confirm_user_settings(op):
             _id = ObjectId(op['memo'].strip())
         except Exception:
             return
-    else:
+    elif len(op['memo'].strip()) == 40:
         _id = op['memo'].strip()
+    else:
+        return
     settings = db.settings.find_one({'_id': _id})
     if settings:
         db.settings.update_one(

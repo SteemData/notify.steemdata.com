@@ -11,7 +11,7 @@
       <div class="ui eight wide column">
         {% if settings._id and not settings.confirmed %}
           <div class="ui success message visible">
-            <p>Please confirm the new settings by sending 0.001 STEEM or SBD to <strong>@{{ config.STEEM_WALLET }}</strong> with the following memo: <strong>{{ settings._id }}</strong>.</p>
+            <p>Please confirm the new settings by sending 0.001 STEEM or SBD to <strong>@{{ config.STEEM_WALLET }}</strong> with the following memo: <strong>{{ settings._id }}</strong></p>
           </div>
         {% endif %}
 
