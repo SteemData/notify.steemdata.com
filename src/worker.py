@@ -175,9 +175,15 @@ def parse_blockchain(op):
 
 
 def confirm_user_settings(op):
-    if op['to'] != steem_wallet or len(op['memo'].strip()) != 24:
+    if op['to'] != steem_wallet:
         return
-    _id = ObjectId(op['memo'].strip())
+    if len(op['memo'].strip()) == 24:
+        try:
+            _id = ObjectId(op['memo'].strip())
+        except Exception:
+            return
+    else:
+        _id = op['memo'].strip()
     settings = db.settings.find_one({'_id': _id})
     if settings:
         db.settings.update_one(
@@ -223,9 +229,12 @@ def send_mail(to, subject, message):
         'text': message,
     }
     try:
-        requests.post(url, auth=auth, data=data)
-        log.info('Sent mail to: %s.' % to)
-        return True
+        r = requests.post(url, auth=auth, data=data)
+        if r.status_code in [200, 201]:
+            log.info('Sent mail to: %s.' % to)
+            return True
+        else:
+            raise Exception(r.text)
     except Exception as e:
         log.error('Failed sending email to %s: %s' % (to, str(e)))
 

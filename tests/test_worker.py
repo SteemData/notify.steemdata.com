@@ -1,3 +1,4 @@
+import collections
 import logging
 import sys
 from datetime import datetime, timedelta
@@ -647,6 +648,59 @@ class ConfirmUserSettingsTests(BaseTests):
         mock_mail.assert_called_once_with('b@b.com', 'Update confirmed', message)
         mock_telegram.assert_called_once_with('@bbb', message)
 
+    @patch('src.worker.send_mail')
+    def test_confirming_newly_created_settings(self, mock_mail):
+        response = self.client.post('/bob', data={
+            'email': 'bob@example.com',
+            'telegram_channel_id': '@bob',
+            'transfer': True,
+        }, follow_redirects=True)
+
+        self.assertEqual(response.status_code, 200)
+        settings = self.get_context_variable('settings')
+        self.assertEqual(settings['email'], 'bob@example.com')
+        self.assertEqual(settings['telegram_channel_id'], '@bob')
+        self.assertEqual(settings['confirmed'], False)
+
+        op = {
+            "_id" : "1f6e047c59bea977a2c513716954538e0b04a8ea",
+            "from" : 'bob',
+            "memo" : str(settings['_id']),
+            "timestamp" : datetime.utcnow(),
+            "type" : "transfer",
+            "trx_id" : "e5a9f188ffc16f8cda143a28f13520a46595a433",
+            "block_num" : 55656,
+            "amount" : {
+                "asset" : "STEEM",
+                "amount" : 0.001
+            },
+            "to" : self.steem_wallet, 
+        }
+        confirm_user_settings(op)
+
+        updated = self.db.settings.find_one({'_id': settings['_id']})
+        self.assertEqual(settings['email'], 'bob@example.com')
+        self.assertEqual(settings['telegram_channel_id'], '@bob')
+        self.assertEqual(updated['confirmed'], True)
+        mock_mail.assert_called_once_with(
+            'bob@example.com', 
+            'Update confirmed', 
+            'You have made the following changes:\n'
+            'Email: bob@example.com\n'
+            'Telegram: @bob\n'
+            'Notify account_update: False\n'
+            'Notify change_recovery_account: False\n'
+            'Notify request_account_recovery: False\n'
+            'Notify transfer: True\n'
+            'Notify transfer_from_savings: False\n'
+            'Notify set_withdraw_vesting_route: False\n'
+            'Notify withdraw_vesting: False\n'
+            'Notify fill_order: False\n'
+            'Notify fill_convert_request: False\n'
+            'Notify fill_transfer_from_savings: False\n'
+            'Notify fill_vesting_withdraw: False\n',
+        )
+
 
 class FindUserSettingsTests(BaseTests):
     today = datetime.utcnow()
@@ -675,6 +729,9 @@ class SendMailTests(BaseTests):
 
     @patch('requests.post')
     def test_success_email(self, mock_r):
+        http_response = collections.namedtuple('http_response', 'status_code text')
+        mock_r.return_value = http_response(status_code=200, text='')
+
         with self.assertLogs(log, level='INFO') as cm:
             send_mail('bob@example.com', 'sample email', 'sample message')
 
