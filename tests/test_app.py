@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from werkzeug.datastructures import MultiDict
 from tests.base import BaseTests
-from src.app import NotificationSettingsForm
+from src.app import NotificationSettingsForm, hash_op
 
 
 class NotificationSettingsFormTests(BaseTests):
@@ -127,3 +127,24 @@ class SettingsTests(BaseTests):
 
         last_settings = self.get_context_variable('last_settings')
         self.assertEqual(last_settings.get('email'), 'b@b.com')
+
+
+class HashOpTests(BaseTests):
+    op = {
+        "_id": "2bf8c1efd5a3e6112bd6fae5ad7fd6e839f77203", 
+        "email": "bob@example.com", 
+        "telegram_channel_id": "@bob", 
+        "created_at": datetime.utcnow(),
+    }
+
+    def test_hash_op(self):
+        hash1 = hash_op(self.op)
+        self.assertEqual(len(hash1), 40)
+
+    def test_hashes_should_be_unique(self):
+        hash1 = hash_op(self.op)
+        self.op['created_at'] = datetime.utcnow() + timedelta(seconds=1)
+
+        hash2 = hash_op(self.op)
+
+        self.assertNotEqual(hash1, hash2)

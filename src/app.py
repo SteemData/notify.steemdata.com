@@ -89,7 +89,8 @@ def settings(username):
 
 def hash_op(event: dict):
     """ This method generates a hash of blockchain operation. """
-    event_ = omit(event, ['_id', 'created_at'])
+    event_ = omit(event, ['_id'])
+    event_['created_at'] = str(event_['created_at'])
     data = json.dumps(event_, sort_keys=True)
     return hashlib.sha1(bytes(data, 'utf-8')).hexdigest()
 
