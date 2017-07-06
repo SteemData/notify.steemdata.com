@@ -118,12 +118,12 @@
           </div>
           {% if last_settings.email %}
             <div class="ui green label">
-              <i class="mail icon"></i> {{ last_settings.email }}
+              <i class="mail icon"></i> {{ last_settings.email|obfuscation }}
             </div>
           {% endif %}
           {% if last_settings.telegram_channel_id %}
             <div class="ui green label">
-              <i class="send icon"></i> {{ last_settings.telegram_channel_id }}
+              <i class="send icon"></i> {{ last_settings.telegram_channel_id|obfuscation }}
             </div>
           {% endif %}
           <div class="ui {% if last_settings.account_update %}green{% endif %} label">
