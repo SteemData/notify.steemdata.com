@@ -87,6 +87,21 @@ def settings(username):
     )
 
 
+@app.template_filter('obfuscation')
+def obfuscation_filter(s):
+    if type(s) != str:
+        return ''
+    if '@' not in s:
+        return s
+    words = [i for i in s.strip().split('@')]
+    for i, word in enumerate(words):
+        chars = list(word)
+        for j in range(2, len(chars)-1):
+            chars[j] = '*'
+        words[i] = ''.join(chars)
+    return '@'.join(words)
+
+
 def hash_op(event: dict):
     """ This method generates a hash of blockchain operation. """
     event_ = omit(event, ['_id'])

@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from werkzeug.datastructures import MultiDict
 from tests.base import BaseTests
-from src.app import NotificationSettingsForm, hash_op
+from src.app import NotificationSettingsForm, hash_op, obfuscation_filter
 
 
 class NotificationSettingsFormTests(BaseTests):
@@ -148,3 +148,21 @@ class HashOpTests(BaseTests):
         hash2 = hash_op(self.op)
 
         self.assertNotEqual(hash1, hash2)
+
+
+class ObfuscationFilterTests(BaseTests):
+    def test_email(self):
+        self.assertEqual(obfuscation_filter('john.doe@gmail.com'), 'jo*****e@gm******m')
+        self.assertEqual(obfuscation_filter('x@y.com'), 'x@y.**m')
+        self.assertEqual(obfuscation_filter('xx@yy.com'), 'xx@yy***m')
+
+    def test_telegram(self):
+        self.assertEqual(obfuscation_filter('@ab'), '@ab')
+        self.assertEqual(obfuscation_filter('@abc'), '@abc')
+        self.assertEqual(obfuscation_filter('@abcd'), '@ab*d')
+        self.assertEqual(obfuscation_filter('@abcde'), '@ab**e')
+        self.assertEqual(obfuscation_filter('@creativecoders'), '@cr***********s')
+
+    def test_other(self):
+        self.assertEqual(obfuscation_filter(dict()), '')
+        self.assertEqual(obfuscation_filter(None), '')

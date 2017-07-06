@@ -9,7 +9,7 @@
       <div class="four wide column"><!--dummy padding--></div>
 
       <div class="ui eight wide column">
-        {% if settings._id and not settings.confirmed %}
+        {% if request.method == 'GET' and settings._id and not settings.confirmed %}
           <div class="ui success message visible">
             <p>Please confirm the new settings by sending 0.001 STEEM or SBD to <strong>@{{ config.STEEM_WALLET }}</strong> with the following memo: <strong>{{ settings._id }}</strong></p>
           </div>
@@ -27,12 +27,20 @@
         {% endif %}
 
         <div class="field {% if form.errors.email %}error{% endif %}">
-          {{ form.email.label }}
-          {{ form.email(placeholder='Your email address') }}
+          {{ form.email.label }} 
+          {% if request.method == 'POST' %}
+            {{ form.email() }}
+          {% else %}
+            {{ form.email(value='', placeholder=form.data.email|obfuscation) }}
+          {% endif %}
         </div>
         <div class="field {% if form.errors.telegram_channel_id %}error{% endif %}">
           {{ form.telegram_channel_id.label }}
-          {{ form.telegram_channel_id(placeholder='e.g: @mychannel') }}
+          {% if request.method == 'POST' %}
+            {{ form.telegram_channel_id() }}
+          {% else %}
+            {{ form.telegram_channel_id(value='', placeholder=form.data.telegram_channel_id|obfuscation) }}
+          {% endif %}
         </div>
 
         <p><strong>Notify me for these events:</strong></p>
