@@ -1,5 +1,4 @@
-FROM python:3.6
-MAINTAINER nash <nashruddin.amin@gmail.com>
+FROM python:3.6.1
 
 COPY . /app
 WORKDIR /app

@@ -7,7 +7,7 @@ services:
   web:
     build: .
     tty: true
-    restart: on-failure
+    restart: always
     ports:
       - "5000:5000"
     depends_on:
@@ -24,7 +24,7 @@ services:
   blockchain_worker:
     build: .
     tty: true
-    restart: on-failure
+    restart: always
     depends_on:
       - mongodb
     env_file:
@@ -39,7 +39,7 @@ services:
   confirmation_worker:
     build: .
     tty: true
-    restart: on-failure
+    restart: always
     depends_on:
       - mongodb
     env_file:
@@ -54,7 +54,7 @@ services:
   notification_worker:
     build: .
     tty: true
-    restart: on-failure
+    restart: always
     depends_on:
       - mongodb
     env_file:
@@ -67,8 +67,8 @@ services:
     command: python src/worker.py notifier
 
   mongodb:
-    image: mongo:3.5
+    image: mongo:latest
     ports:
       - "27017:27017"
     volumes:
-      - mongo_data:/data/db
+      - /mongo_data:/data/db
