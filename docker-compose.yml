@@ -8,6 +8,7 @@ services:
     build: .
     tty: true
     restart: always
+    mem_limit: 100m
     ports:
       - "5000:5000"
     depends_on:
@@ -25,6 +26,7 @@ services:
     build: .
     tty: true
     restart: always
+    mem_limit: 100m
     depends_on:
       - mongodb
     env_file:
@@ -40,6 +42,7 @@ services:
     build: .
     tty: true
     restart: always
+    mem_limit: 100m
     depends_on:
       - mongodb
     env_file:
@@ -55,6 +58,7 @@ services:
     build: .
     tty: true
     restart: always
+    mem_limit: 100m
     depends_on:
       - mongodb
     env_file:
@@ -68,6 +72,7 @@ services:
 
   mongodb:
     image: mongo:latest
+    mem_limit: 200m
     ports:
       - "27017:27017"
     volumes:
